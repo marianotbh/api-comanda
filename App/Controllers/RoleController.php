@@ -11,7 +11,7 @@ use App\Core\Validator;
 use App\Services\RoleService;
 use App\Models\Role;
 
-class RolesController
+class RoleController
 {
     private $roleService;
 

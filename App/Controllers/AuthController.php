@@ -62,7 +62,7 @@ class AuthController
         return $res->withJson(["message" => "OK"], StatusCode::HTTP_OK);
     }
 
-    public function password_change(Request $req, Response $res, $args)
+    public function changePassword(Request $req, Response $res, $args)
     {
     }
 }

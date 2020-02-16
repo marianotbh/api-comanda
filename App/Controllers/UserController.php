@@ -11,7 +11,7 @@ use App\Core\Validator;
 use App\Services\UserService;
 use App\Models\User;
 
-class UsersController
+class UserController
 {
     private $userService;
 

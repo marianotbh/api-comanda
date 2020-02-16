@@ -5,7 +5,7 @@ namespace App\Models;
 use \App\Core\Data\Model;
 use JsonSerializable;
 
-class Order extends Model implements JsonSerializable
+class Menu extends Model implements JsonSerializable
 {
     public $id;
     public $name;
