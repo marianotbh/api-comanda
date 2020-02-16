@@ -1,0 +1,21 @@
+{
+	"require": {
+		"slim/slim": "^3.0",
+		"firebase/php-jwt": "^5.0",
+		"phpmailer/phpmailer": "^6.1",
+		"swiftmailer/swiftmailer": "6.0"
+	},
+	"config": {
+		"optimize-autoloader": true
+	},
+	"autoload": {
+		"psr-4": {
+			"App\\Core\\": "App/Core",
+			"App\\Controllers\\": "App/Controllers",
+			"App\\FileSystem\\": "App/FileSystem",
+			"App\\Middleware\\": "App/Middleware",
+			"App\\Models\\": "App/Models",
+			"App\\Services\\": "App/Services"
+		}
+	}
+}
