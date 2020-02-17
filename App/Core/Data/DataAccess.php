@@ -31,26 +31,9 @@ class DataAccess
         return self::$instance;
     }
 
-    function query($query)
-    {
-        return $this->pdo->query($query);
-    }
-
     function prepare($query)
     {
         return $this->pdo->prepare($query);
-    }
-
-    function wherify($array)
-    {
-        $clause = implode(' AND ', array_map(function ($value, $key) {
-            if (is_string($value)) {
-                return "`" . $key . "` LIKE '%" . $value . "%'";
-            } else {
-                return "`" . $key . "` = '" . $value . "'";
-            }
-        }, $array, array_keys($array)));
-        return strlen($clause) > 0 ? $clause : ' true ';
     }
 
     function __clone()
