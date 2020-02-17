@@ -7,6 +7,8 @@ use JsonSerializable;
 
 class Table extends Model implements JsonSerializable
 {
+    static protected $_pk = "code";
+
     public $code;
     public $capacity;
     public $state;

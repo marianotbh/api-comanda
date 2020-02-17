@@ -7,6 +7,8 @@ use JsonSerializable;
 
 class Order extends Model implements JsonSerializable
 {
+    static protected $_pk = "code";
+
     public $code;
     public $state;
     public $user;
