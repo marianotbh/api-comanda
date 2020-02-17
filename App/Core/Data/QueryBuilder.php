@@ -188,8 +188,6 @@ class QueryBuilder
     function fetch()
     {
         $queryString = $this->buildQuery();
-        echo $queryString;
-
         $query = $this->data()->prepare($queryString);
         $query->execute($this->values);
         $this->reset();
@@ -200,7 +198,6 @@ class QueryBuilder
     {
         $queryString = $this->buildQuery();
         $query = $this->data()->prepare($queryString);
-        echo $queryString;
         $query->execute($this->values);
         $this->reset();
         return $query->rowCount() > 0 ? true : false;
