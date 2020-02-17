@@ -9,14 +9,23 @@ class Menu extends Model implements JsonSerializable
 {
     static protected $table = "menu";
 
+    /** @var int */
     public $id;
+    /** @var string */
     public $name;
+    /** @var string */
     public $description;
+    /** @var float */
     public $price;
+    /** @var int */
     public $stock;
+    /** @var int */
     public $category;
+    /** @var string */
     public $created_at;
+    /** @var string */
     public $updated_at;
+    /** @var string */
     public $removed_at;
 
     function jsonSerialize()

@@ -28,8 +28,8 @@ class OrderController
     function create(Request $req, Response $res, $args)
     {
         $model = Validator::check([
-            "name" => ["required", "minLength:5"],
-            "description" => ["required", "minLength:5"]
+            "user" => "required",
+            "table" => "required"
         ], $req->getParsedBody());
 
         $this->orderService->create($model);

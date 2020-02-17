@@ -28,8 +28,11 @@ class MenuController
     function create(Request $req, Response $res, $args)
     {
         $model = Validator::check([
-            "name" => ["required", "minLength:5"],
-            "description" => ["required", "minLength:5"]
+            "name" => ["required", "minLength:3"],
+            "description" => ["required", "minLength:5"],
+            "price" => "required",
+            "stock" => "required",
+            "category" => "required"
         ], $req->getParsedBody());
 
         $this->menuService->create($model);
@@ -51,10 +54,11 @@ class MenuController
         $id = (int) $args["id"];
 
         $model = Validator::check([
-            "firstName" => ["required", "minLength:2"],
-            "lastName" => ["required", "minLength:2"],
-            "email" => ["required", "email"],
-            "role" => ["required"]
+            "name" => ["required", "minLength:3"],
+            "description" => ["required", "minLength:5"],
+            "price" => "required",
+            "stock" => "required",
+            "category" => "required"
         ],  $req->getParsedBody());
 
         $this->menuService->update($id, $model);
