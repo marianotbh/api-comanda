@@ -14,9 +14,9 @@ class AuthService
 
         if ($user != null) {
             if (password_verify($password, $user->password)) {
-                User::editLast_login_at($user->id, date('Y-m-d H:i:s'));
-                $user = User::find($user->id);
-                return JWTHelper::encode(json_decode(json_encode($user)), $remember ? false : true);
+                $user->last_login_at = date('Y-m-d H:i:s');
+                $user->edit();
+                return JWTHelper::encode(json_decode(json_encode($user)), $remember);
             } else {
                 throw new AppException("Password is incorrect");
             }
@@ -27,25 +27,20 @@ class AuthService
 
     function register($model)
     {
-        [
-            'name' => $username,
-            'password' => $password,
-            'passwordRepeat' => $passwordRepeat,
-            'email' => $email,
-            'role' => $role
-        ] = $model;
-
-        $user = User::findByName($username);
+        $user = User::findByName($model->name);
 
         if ($user == null) {
-            if ($password == $passwordRepeat) {
-                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-                User::create([
-                    "name" => $username,
-                    "password" => $passwordHash,
-                    "email" => $email,
-                    "role" => $role
-                ]);
+            if ($model->password == $model->passwordRepeat) {
+                $passwordHash = password_hash($model->password, PASSWORD_DEFAULT);
+
+                $user = new User();
+
+                $user->name = $model->name;
+                $user->password = $passwordHash;
+                $user->email = $model->email;
+                $user->role = $model->role;
+
+                return $user->create();
             } else {
                 throw new AppException("Passwords don't match");
             }

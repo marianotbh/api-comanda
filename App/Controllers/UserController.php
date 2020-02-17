@@ -6,10 +6,8 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\StatusCode;
 
-use App\Core\Mapper;
 use App\Core\Validator;
 use App\Services\UserService;
-use App\Models\User;
 
 class UserController
 {
@@ -29,7 +27,7 @@ class UserController
 
     function read(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"] ?? -1;
+        $id = (int) $args["id"];
 
         $user = $this->userService->read($id);
 
@@ -38,14 +36,14 @@ class UserController
 
     function update(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"] ?? -1;
+        $id = (int) $args["id"];
 
-        $model = Mapper::map(Validator::check([
-            "firstName" => "minLength:2",
-            "lastName" => "minLength:2",
-            "email" => "email",
-            "role" => "in:ADMIN;MANAGER;USER"
-        ],  $req->getParsedBody()), User::class);
+        $model = Validator::check([
+            "firstName" => ["required", "minLength:2"],
+            "lastName" => ["required", "minLength:2"],
+            "email" => ["required", "email"],
+            "role" => ["required", "in:1;MANAGER;USER"]
+        ],  $req->getParsedBody());
 
         $this->userService->update($id, $model);
 
@@ -54,7 +52,7 @@ class UserController
 
     function delete(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"] ?? -1;
+        $id = (int) $args["id"];
 
         $this->userService->delete($id);
 

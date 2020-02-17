@@ -46,7 +46,6 @@ $app->group('/roles', function (App $app) {
     $app->delete('/{id}[/]', RoleController::class . ":delete");
 });
 
-
 $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function (Request $req, Response $res) {
     $handler = $this->notFoundHandler;
     return $handler($req, $res);

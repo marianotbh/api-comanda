@@ -9,38 +9,72 @@ class RoleService
 {
     function list()
     {
-        return Role::all();
+        /** @var Role[] */
+        $roles = Role::whereRemoved_at(null)
+            ->orderBy("name")
+            ->take(10)
+            ->fetch();
+
+        return $roles;
     }
 
     function read($id)
     {
-        return Role::findById($id);
+        /** @var Role */
+        $role = Role::findById($id);
+
+        return $role;
     }
 
-    function create(Role $model)
+    function create($model)
     {
-        if (Role::findByName($model->name)) {
-            throw new AppException("Rolename already taken");
-        }
+        $role = new Role();
 
-        return Role::create($model);
+        $role->name = $model->name;
+        $role->description = $model->description;
+
+        return $role->create();
     }
 
-    function update($id, Role $model)
+    function update($id, $model)
     {
-        if (Role::findById($id)) {
+        /** @var Role */
+        $role = Role::findById($id);
+
+        if ($role == null) {
             throw new AppException("Role not found");
         }
 
-        return Role::edit($id, $model);
+        $role->name = $model->name;
+        $role->description = $model->description;
+        $role->updated_at = date('Y-m-d H:i:s');
+
+        return $role->edit();
+    }
+
+    function remove($id)
+    {
+        /** @var Role */
+        $role = Role::findById($id);
+
+        if ($role == null) {
+            throw new AppException("Role not found");
+        }
+
+        $role->removed_at = date('Y-m-d H:i:s');
+
+        return $role->edit();
     }
 
     function delete($id)
     {
-        if (Role::findById($id)) {
+        /** @var Role */
+        $role = Role::findById($id);
+
+        if ($role == null) {
             throw new AppException("Role not found");
         }
 
-        return Role::delete($id);
+        return $role->delete();
     }
 }

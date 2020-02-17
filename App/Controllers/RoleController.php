@@ -6,10 +6,8 @@ use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\StatusCode;
 
-use App\Core\Mapper;
 use App\Core\Validator;
 use App\Services\RoleService;
-use App\Models\Role;
 
 class RoleController
 {
@@ -29,7 +27,7 @@ class RoleController
 
     function read(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"] ?? -1;
+        $id = (int) $args["id"];
 
         $user = $this->roleService->read($id);
 
@@ -40,7 +38,7 @@ class RoleController
     {
         $model = Validator::check([
             "name" => ["required", "minLength:5"],
-            "description" => ["minLength:5"]
+            "description" => ["required", "minLength:5"]
         ], $req->getParsedBody());
 
         $this->roleService->create($model);
@@ -50,11 +48,12 @@ class RoleController
 
     function update(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"] ?? -1;
+        $id = (int) $args["id"];
 
-        $model = Mapper::map(Validator::check([
-            "name" => "required",
-        ],  $req->getParsedBody()), Role::class);
+        $model = Validator::check([
+            "name" => ["required", "minLength:5"],
+            "description" => ["required", "minLength:5"]
+        ],  $req->getParsedBody());
 
         $this->roleService->update($id, $model);
 
@@ -63,7 +62,7 @@ class RoleController
 
     function delete(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"] ?? -1;
+        $id = (int) $args["id"];
 
         $this->roleService->delete($id);
 

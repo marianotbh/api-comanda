@@ -21,17 +21,17 @@ class AuthController
 
     public function login(Request $req, Response $res, $args)
     {
-        [
-            "username" => $username,
-            "password" => $password,
-            "remember" => $remember
-        ] = Validator::check([
+        $model = Validator::check([
             "username" => "required",
             "password" => "required",
             "remember" => "required"
         ], $req->getParsedBody());
 
-        $token = $this->authService->login($username, $password, $remember);
+        $token = $this->authService->login(
+            $model->username,
+            $model->password,
+            $model->remember
+        );
 
         return $res->withJson(["token" => $token], StatusCode::HTTP_OK);
     }

@@ -34,7 +34,7 @@ class Validator
             throw new ValidatorException("The passed object contains the following errors: " . implode(", ", $errors));
         }
 
-        return $object;
+        return (object) $object;
     }
 }
 

@@ -11,6 +11,8 @@ class User extends Model implements JsonSerializable
     public $name;
     public $password;
     public $email;
+    public $first_name;
+    public $last_name;
     public $created_at;
     public $updated_at;
     public $removed_at;

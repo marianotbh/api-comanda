@@ -3,55 +3,7 @@
 namespace App\Core\Data;
 
 use \App\Core\Exceptions\ModelException;
-
-define("SPACE", " ");
-
-function getLastItem($array)
-{
-    return array_values(array_slice($array, -1))[0];
-}
-function splitByUpperCase($camelCaseString)
-{
-    return preg_split('/(?<=[a-z])(?=[A-Z])/x', $camelCaseString);
-}
-function startsWith($haystack, $needle)
-{
-    return substr_compare($haystack, $needle, 0, strlen($needle)) === 0;
-}
-function endsWith($haystack, $needle)
-{
-    return substr_compare($haystack, $needle, -strlen($needle)) === 0;
-}
-function endsWithAnyOf($haystack, $needles)
-{
-    foreach ($needles as $needle) {
-        endsWith($haystack, $needle);
-    }
-}
-function parseParameter($args)
-{
-    return is_string($args) ? "'%" . $args . "%'" : (is_array($args) ? "(" . implode(",", $args) . ")" : $args);
-}
-function getOperator($args)
-{
-    $operator = is_string($args) ? "LIKE" : (is_array($args) ? "IN" : "=");
-
-    if (startsWith($args, "!")) {
-        $operator = $operator == "=" ? "!=" : "NOT" . SPACE . $operator;
-    }
-
-    return $operator;
-}
-function plurify($string)
-{
-    if (endsWith($string, "s")) {
-        return $string . "es";
-    } else if (endsWith($string, "y")) {
-        return substr($string, 0, strlen($string) - 2) . "ies";
-    } else {
-        return $string . "s";
-    }
-}
+use \App\Core\Data\QueryBuilder;
 
 abstract class Model
 {
@@ -60,12 +12,7 @@ abstract class Model
     static protected $_lowercase = true;
     static protected $_kebabize = true;
 
-    private static function access()
-    {
-        return DataAccess::getInstance();
-    }
-
-    private static function getTableName()
+    private static function table()
     {
         $calledClass = get_called_class();
         $name = $calledClass::$_table ?? getLastItem(explode("\\", $calledClass));
@@ -88,7 +35,7 @@ abstract class Model
         return $name;
     }
 
-    private static function getPrimaryKey()
+    private static function pk()
     {
         return get_called_class()::$_pk ?? 'id';
     }
@@ -100,99 +47,144 @@ abstract class Model
         if (count($words) >= 1) {
             $action = $words[0];
             if ($action == "find" && $words[1] == "by") {
-                return self::find($args[0], $words[2]);
+                $value = $args[0] ?? null;
+                $prop = $words[2] ?? "id";
+                return self::find($prop, $value);
             } else if ($action == "where") {
-                return self::where($words[1], $args[0]);
+                $prop = $words[1];
+                $operator = isset($words[2]) && $words[2] == "not" ? false : true;
+                $value = $args[0];
+                return self::where($prop, $operator, $value);
             } else if ($action == "edit") {
-                return self::edit($args[0], [$words[1] => $args[1]]);
+                $pk = $args[0];
+                $prop = $words[1];
+                $value = $args[1];
+                return self::edit($pk, [$prop => $value]);
             } else {
                 throw new ModelException("Call to undefined method");
             }
         }
     }
 
-    static function find($args, $prop = null)
+    static function find($prop, $value = null)
     {
-        $prop = $prop ?? self::getPrimaryKey();
-        $operator = getOperator($args);
-        $args = parseParameter($args);
-        $queryString = "SELECT * FROM" . SPACE . self::getTableName() . SPACE . "WHERE" . SPACE . $prop . SPACE . $operator . SPACE . $args . SPACE . "LIMIT 1";
-        $query = self::access()->prepare($queryString);
-        $query->execute();
-        $query->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
-        return $query->fetch();
+        $table = self::table();
+
+        if ($value == null) {
+            $value = $prop;
+            $prop = self::pk();
+        }
+
+        $qb = new QueryBuilder($table);
+
+        $result = $qb->select()
+            ->where($prop, "=", $value)
+            ->take(1)
+            ->setFetchMode(\PDO::FETCH_CLASS, get_called_class())
+            ->fetch() ?? null;
+
+        return $result != null ? $result[0] : null;
     }
 
     static function all()
     {
-        $queryString = "SELECT * FROM" . SPACE . self::getTableName();
-        $query = self::access()->prepare($queryString);
-        $query->execute();
-        return $query->fetchAll(\PDO::FETCH_CLASS, get_called_class());
+        $table = self::table();
+
+        $qb = new QueryBuilder($table);
+
+        $result = $qb->select()
+            ->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
+
+        return $result;
     }
 
-    static function where($prop, $args)
+    static function where($prop, $operator = "=", $value = null)
     {
-        $args = parseParameter($args);
-        $operator = getOperator($args);
-        $queryString = "SELECT * FROM" . SPACE . self::getTableName() . SPACE . "WHERE" . SPACE . $prop . SPACE . $operator . SPACE . $args;
-        $query = self::access()->prepare($queryString);
-        $query->execute();
-        return $query->fetchAll(\PDO::FETCH_CLASS, get_called_class());
+        $table = self::table();
+
+        $qb = new QueryBuilder($table);
+
+        $result = $qb->select()
+            ->setFetchMode(\PDO::FETCH_CLASS, get_called_class())
+            ->where($prop, $operator, $value);
+
+        return $result;
     }
 
-    static function paginate($filters = [], $limit = 9999, $offset = 0)
+    function create()
     {
-        $vars = get_object_vars((object) $filters);
-        $keys = implode(", ", array_keys($vars));
-        $values = array_values($vars);
+        $table = get_class($this)::table();
+
+        $qb = new QueryBuilder($table);
+
+        $result = $qb->insert($this)->run();
+
+        return $result;
     }
 
-    static function create($object)
+    function edit()
     {
-        try {
-            $vars = array_filter(get_object_vars((object) $object), function ($value) {
-                return $value != null;
-            }, ARRAY_FILTER_USE_BOTH);
-            $keys = implode(", ", array_keys($vars));
-            $values = array_values($vars);
-            $placeholders = implode(", ", array_map(function () {
-                return "?";
-            }, $values));
-            $queryString = "INSERT INTO" . SPACE . self::getTableName() . SPACE . "(" . $keys . ") VALUES (" . $placeholders . ")";
-            $query = self::access()->prepare($queryString);
-            return $query->execute($values);
-        } catch (\Exception $e) {
-            throw new ModelException("Invalid model object at method create.", 666, $e);
-        }
+        $pk = get_class($this)::pk();
+        $table = get_class($this)::table();
+
+        $qb = new QueryBuilder($table);
+
+        $result = $qb->update($this)
+            ->where($pk, "=", $this->$pk)
+            ->run();
+
+        return $result;
     }
 
-    static function edit($id, $object)
+    function delete()
     {
-        try {
-            $pk = self::getPrimaryKey();
-            $vars = array_filter(get_object_vars((object) $object), function ($value) {
-                return $value != null;
-            }, ARRAY_FILTER_USE_BOTH);
-            $keys = array_keys($vars);
-            $values = array_values($vars);
-            $placeholders = implode(", ", array_map(function ($key) {
-                return $key . SPACE . "= ?";
-            }, $keys));
-            $queryString = "UPDATE" . SPACE . self::getTableName() . SPACE . "SET" . SPACE . $placeholders . SPACE . "WHERE" . SPACE . $pk . "=" . $id;
-            $query = self::access()->prepare($queryString);
-            return $query->execute($values);
-        } catch (\Exception $e) {
-            //throw new ModelException("Invalid model object at method create.", 666, $e);
-            throw $e;
-        }
-    }
+        $pk = get_class($this)::pk();
+        $table = get_class($this)::table();
 
-    static function delete($id)
-    {
-        $pk = self::getPrimaryKey();
-        $queryString = "DELETE FROM" . SPACE . self::getTableName() . SPACE . "WHERE" . SPACE . $pk . "=" . $id;
-        $query = self::access()->prepare($queryString);
-        return $query->execute();
+        $qb = new QueryBuilder($table);
+
+        $result = $qb->delete()
+            ->where($pk, "=", $this->$pk)
+            ->run();
+
+        return $result;
+    }
+}
+
+function getLastItem($array)
+{
+    return array_values(array_slice($array, -1))[0];
+}
+
+function splitByUpperCase($camelCaseString)
+{
+    return preg_split('/(?<=[a-z])(?=[A-Z])/x', $camelCaseString);
+}
+
+function startsWith($haystack, $needle)
+{
+    return substr_compare($haystack, $needle, 0, strlen($needle)) === 0;
+}
+
+function endsWith($haystack, $needle)
+{
+    return substr_compare($haystack, $needle, -strlen($needle)) === 0;
+}
+
+function endsWithAnyOf($haystack, $needles)
+{
+    foreach ($needles as $needle) {
+        endsWith($haystack, $needle);
+    }
+}
+
+function plurify($string)
+{
+    if (endsWith($string, "s")) {
+        return $string . "es";
+    } else if (endsWith($string, "y")) {
+        return substr($string, 0, strlen($string) - 2) . "ies";
+    } else {
+        return $string . "s";
     }
 }

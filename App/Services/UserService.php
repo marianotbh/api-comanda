@@ -9,41 +9,42 @@ class UserService
 {
     function list()
     {
-        return User::all();
+        return User::all()->fetch();
     }
 
+    /** @return User */
     function read($id)
     {
         return User::findById($id);
     }
 
-    function create(User $model)
+    /** @return bool */
+    function update($id, $model)
     {
-        if (User::findByName($model->name)) {
-            throw new AppException("Username already taken");
-        }
+        /** @var User */
+        $user = User::findById($id);
 
-        return User::create($model);
-    }
-
-    function update($id, User $model)
-    {
-        if (User::findById($id) == null) {
+        if ($user == null) {
             throw new AppException("User not found");
         }
 
-        User::edit($id, $model);
-        User::editUpdated_at($id, date('Y-m-d H:i:s'));
+        $user->first_name = $model->firstName;
+        $user->last_name = $model->lastName;
+        $user->updated_at = date('Y-m-d H:i:s');
 
-        return true;
+        return $user->edit();
     }
 
-    function delete($id)
+    /** @return bool */
+    function delete(int $id)
     {
-        if (User::findById($id) == null) {
+        /** @var User */
+        $user = User::findById($id);
+
+        if ($user == null) {
             throw new AppException("User not found");
         }
 
-        return User::delete($id);
+        return $user->delete();
     }
 }
