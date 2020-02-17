@@ -14,6 +14,7 @@ class QueryBuilder
     private $conditions;
     private $limit;
     private $offset;
+    private $groupCol;
     private $orderCol;
     private $orderDir;
     private $fetchMode;
@@ -33,9 +34,24 @@ class QueryBuilder
         return DataAccess::getInstance();
     }
 
-    function select()
+    function select($column = "*", $operator = null)
     {
-        $this->sentence = ("SELECT * FROM" . SPACE . $this->table);
+        if (is_array($column)) {
+            $selection = "(" . implode(", ", $column) . ")";
+            $operator = null;
+        } else {
+            $selection = $column;
+        }
+
+        if ($operator != null) {
+            if (in_array($operator, ["MIN", "MAX", "COUNT", "AVG", "SUM"])) {
+                $selection = $operator . "(" . $selection . ")";
+            } else {
+                throw new AppException("Invalid operator in SELECT statement");
+            }
+        }
+
+        $this->sentence = ("SELECT" . $selection . "FROM" . SPACE . $this->table);
 
         return $this;
     }
@@ -124,6 +140,8 @@ class QueryBuilder
 
     function or($prop, $operator = "=", $value = null)
     {
+        if (count($this->conditions) == 0) throw new AppException("There must exist a previous condition in order to add an OR clause");
+
         if (is_array($value)) {
             $tokens = implode(", ", array_map(function ($item) {
                 return "?";
@@ -133,8 +151,8 @@ class QueryBuilder
                 array_push($this->values, $v);
             }
         } else if (is_string($value)) {
-            $condition = $prop . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "%?%";
-            array_push($this->values, $value);
+            $condition = $prop . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "?";
+            array_push($this->values, "%" .  $value . "%");
         } else if ($value == null) {
             $condition = $prop . SPACE . ($operator == false ? "IS NOT" : "IS") . SPACE . "NULL";
         } else {
@@ -165,6 +183,17 @@ class QueryBuilder
         return $this;
     }
 
+    function groupBy(string $prop)
+    {
+        if (strpos($prop, ' ') !== false) {
+            throw new AppException("Invalid order property");
+        }
+
+        $this->groupCol = $prop;
+
+        return $this;
+    }
+
     function orderBy(string $prop, $direction = "ASC")
     {
         if (strpos($prop, ' ') !== false) {
@@ -175,6 +204,16 @@ class QueryBuilder
         $this->orderDir = $direction;
 
         return $this;
+    }
+
+    function sum($col)
+    {
+        return $this->select($col, "SUM");
+    }
+
+    function count($col = "*")
+    {
+        return $this->select($col, "COUNT");
     }
 
     function setFetchMode($fetchMode, $fetchParam)
@@ -205,25 +244,34 @@ class QueryBuilder
 
     private function buildQuery()
     {
-        $queryString = $this->sentence;
+        $queryString = empty($this->sentence) ? $this->select()->sentence : $this->sentence;
 
         if (count($this->conditions) > 0) {
-            $queryString .= (SPACE . "WHERE" . SPACE . implode(SPACE . "AND" . SPACE, $this->conditions));
+            $queryString .= SPACE;
+            $queryString .= "WHERE" . SPACE . implode(SPACE . "AND" . SPACE, $this->conditions);
         } else {
             if (startsWith($queryString, "UPDATE")) throw new AppException("You are running an UPDATE operation without a WHERE clause, please consider rechecking your code");
             if (startsWith($queryString, "DELETE")) throw new AppException("You are running a DELETE operation without a WHERE clause, please consider rechecking your code");
         }
 
+        if (isset($this->groupCol)) {
+            $queryString .= SPACE;
+            $queryString .= "GROUP BY" . SPACE . $this->groupCol;
+        }
+
         if (isset($this->orderCol)) {
-            $queryString .= (SPACE . "ORDER BY" . SPACE . $this->orderCol . ($this->orderDir == "DESC" ? SPACE . $this->orderDir : ""));
+            $queryString .= SPACE;
+            $queryString .= "ORDER BY" . SPACE . $this->orderCol . ($this->orderDir == "DESC" ? SPACE . $this->orderDir : "");
         }
 
         if ($this->limit > -1) {
-            $queryString .= SPACE . "LIMIT" . SPACE . $this->limit;
+            $queryString .= SPACE;
+            $queryString .= "LIMIT" . SPACE . $this->limit;
         }
 
         if ($this->offset > 0) {
-            $queryString .= SPACE . "OFFSET" . SPACE . $this->offset;
+            $queryString .= SPACE;
+            $queryString .= "OFFSET" . SPACE . $this->offset;
         }
 
         return $queryString;

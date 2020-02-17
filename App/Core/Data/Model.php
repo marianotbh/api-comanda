@@ -7,37 +7,30 @@ use \App\Core\Data\QueryBuilder;
 
 abstract class Model
 {
-    static protected $_name;
-    static protected $_plurify = true;
-    static protected $_lowercase = true;
-    static protected $_kebabize = true;
-
-    private static function table()
+    private static function get_table()
     {
         $calledClass = get_called_class();
-        $name = $calledClass::$_table ?? getLastItem(explode("\\", $calledClass));
-        $kebabize = $calledClass::$_kebabize ?? true;
-        $lowercase = $calledClass::$_lowercase ?? true;
-        $plurify = $calledClass::$_plurify ?? true;
 
-        if ($lowercase) {
-            $name = strtolower($name);
+        if (isset($calledClass::$table))
+            return $calledClass::$table;
+        else {
+            $name = getLastItem(explode("\\", $calledClass));
+
+            $kebabize = $calledClass::$kebabize ?? true;
+            $lowercase = $calledClass::$lowercase ?? true;
+            $plurify = $calledClass::$plurify ?? true;
+
+            if ($lowercase) $name = strtolower($name);
+            if ($plurify) $name = plurify($name);
+            if ($kebabize) $name = kebabize($name);
+
+            return $name;
         }
-
-        if ($plurify) {
-            $name = plurify($name);
-        }
-
-        if ($kebabize) {
-            $name = implode("_", splitByUpperCase($name));
-        }
-
-        return $name;
     }
 
-    private static function pk()
+    private static function get_pk()
     {
-        return get_called_class()::$_pk ?? 'id';
+        return get_called_class()::$pk ?? 'id';
     }
 
     static function __callStatic($name, $args)
@@ -68,11 +61,11 @@ abstract class Model
 
     static function find($prop, $value = null)
     {
-        $table = self::table();
+        $table = self::get_table();
 
         if ($value == null) {
             $value = $prop;
-            $prop = self::pk();
+            $prop = self::get_pk();
         }
 
         $qb = new QueryBuilder($table);
@@ -88,32 +81,25 @@ abstract class Model
 
     static function all()
     {
-        $table = self::table();
+        $table = self::get_table();
 
         $qb = new QueryBuilder($table);
 
-        $result = $qb->select()
-            ->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
+        $result = $qb->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
 
         return $result;
     }
 
     static function where($prop, $operator = "=", $value = null)
     {
-        $table = self::table();
-
-        $qb = new QueryBuilder($table);
-
-        $result = $qb->select()
-            ->setFetchMode(\PDO::FETCH_CLASS, get_called_class())
-            ->where($prop, $operator, $value);
+        $result = self::all()->where($prop, $operator, $value);
 
         return $result;
     }
 
     function create()
     {
-        $table = get_class($this)::table();
+        $table = get_class($this)::get_table();
 
         $qb = new QueryBuilder($table);
 
@@ -124,8 +110,8 @@ abstract class Model
 
     function edit()
     {
-        $pk = get_class($this)::pk();
-        $table = get_class($this)::table();
+        $pk = get_class($this)::get_pk();
+        $table = get_class($this)::get_table();
 
         $qb = new QueryBuilder($table);
 
@@ -138,8 +124,8 @@ abstract class Model
 
     function delete()
     {
-        $pk = get_class($this)::pk();
-        $table = get_class($this)::table();
+        $pk = get_class($this)::get_pk();
+        $table = get_class($this)::get_table();
 
         $qb = new QueryBuilder($table);
 
@@ -171,11 +157,9 @@ function endsWith($haystack, $needle)
     return substr_compare($haystack, $needle, -strlen($needle)) === 0;
 }
 
-function endsWithAnyOf($haystack, $needles)
+function kebabize($string)
 {
-    foreach ($needles as $needle) {
-        endsWith($haystack, $needle);
-    }
+    return implode("_", splitByUpperCase($string));
 }
 
 function plurify($string)

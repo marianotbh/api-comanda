@@ -7,6 +7,8 @@ use JsonSerializable;
 
 class Menu extends Model implements JsonSerializable
 {
+    static protected $table = "menu";
+
     public $id;
     public $name;
     public $description;
