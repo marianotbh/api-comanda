@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Core\Exceptions\AppException;
+use App\Models\Role;
 
 class UserService
 {
@@ -24,9 +25,13 @@ class UserService
         /** @var User */
         $user = User::findById($id);
 
-        if ($user == null) {
-            throw new AppException("User not found");
-        }
+        if ($user == null) throw new AppException("User not found");
+
+        $roles = array_map(function (Role $role) {
+            return $role->id;
+        }, Role::whereRemoved_at(null)->fetch());
+
+        if (!in_array($model->role, $roles)) throw new AppException("Invalid role");
 
         $user->first_name = $model->firstName;
         $user->last_name = $model->lastName;
@@ -41,9 +46,7 @@ class UserService
         /** @var User */
         $user = User::findById($id);
 
-        if ($user == null) {
-            throw new AppException("User not found");
-        }
+        if ($user == null) throw new AppException("User not found");
 
         return $user->delete();
     }

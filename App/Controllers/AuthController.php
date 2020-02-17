@@ -43,7 +43,7 @@ class AuthController
             "password" => ["required", "minLength:5"],
             "passwordRepeat" => ["required", "minLength:5"],
             "email" => ["required", "email"],
-            "role" => ["required", "in:1;2;3"]
+            "role" => ["required"]
         ], $req->getParsedBody());
 
         $this->authService->register($model);

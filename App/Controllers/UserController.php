@@ -42,7 +42,7 @@ class UserController
             "firstName" => ["required", "minLength:2"],
             "lastName" => ["required", "minLength:2"],
             "email" => ["required", "email"],
-            "role" => ["required", "in:1;MANAGER;USER"]
+            "role" => ["required"]
         ],  $req->getParsedBody());
 
         $this->userService->update($id, $model);

@@ -41,9 +41,7 @@ class RoleService
         /** @var Role */
         $role = Role::findById($id);
 
-        if ($role == null) {
-            throw new AppException("Role not found");
-        }
+        if ($role == null) throw new AppException("Role not found");
 
         $role->name = $model->name;
         $role->description = $model->description;
@@ -57,9 +55,7 @@ class RoleService
         /** @var Role */
         $role = Role::findById($id);
 
-        if ($role == null) {
-            throw new AppException("Role not found");
-        }
+        if ($role == null) throw new AppException("Role not found");
 
         $role->removed_at = date('Y-m-d H:i:s');
 
@@ -71,9 +67,7 @@ class RoleService
         /** @var Role */
         $role = Role::findById($id);
 
-        if ($role == null) {
-            throw new AppException("Role not found");
-        }
+        if ($role == null) throw new AppException("Role not found");
 
         return $role->delete();
     }
