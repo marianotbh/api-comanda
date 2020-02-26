@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Table;
+use App\Models\TableState;
 use App\Core\Exceptions\AppException;
 
 class TableService
@@ -11,17 +12,17 @@ class TableService
     {
         /** @var Table[] */
         $tables = Table::whereRemoved_at(null)
-            ->orderBy("name")
+            ->orderBy("updated_at")
             ->take(10)
             ->fetch();
 
         return $tables;
     }
 
-    function read($id)
+    function read($code)
     {
         /** @var Table */
-        $table = Table::findById($id);
+        $table = Table::findByCode($code);
 
         return $table;
     }
@@ -36,10 +37,10 @@ class TableService
         return $table->create();
     }
 
-    function update($id, $model)
+    function update($code, $model)
     {
         /** @var Table */
-        $table = Table::findById($id);
+        $table = Table::findByCode($code);
 
         if ($table == null) throw new AppException("Table not found");
 
@@ -50,10 +51,10 @@ class TableService
         return $table->edit();
     }
 
-    function remove($id)
+    function remove($code)
     {
         /** @var Table */
-        $table = Table::findById($id);
+        $table = Table::findByCode($code);
 
         if ($table == null) throw new AppException("Table not found");
 
@@ -62,13 +63,18 @@ class TableService
         return $table->edit();
     }
 
-    function delete($id)
+    function delete($code)
     {
         /** @var Table */
-        $table = Table::findById($id);
+        $table = Table::findByCode($code);
 
         if ($table == null) throw new AppException("Table not found");
 
         return $table->delete();
+    }
+
+    function states()
+    {
+        return TableState::all()->fetch();
     }
 }

@@ -20,9 +20,9 @@ class ReviewController
 
     function list(Request $req, Response $res, $args)
     {
-        $data = $this->reviewService->list();
+        $reviews = $this->reviewService->list();
 
-        return $res->withJson(["reviews" => $data], StatusCode::HTTP_OK);
+        return $res->withJson($reviews, StatusCode::HTTP_OK);
     }
 
     function create(Request $req, Response $res, $args)
@@ -43,7 +43,7 @@ class ReviewController
 
         $review = $this->reviewService->read($id);
 
-        return $res->withJson(["review" => $review ?: null], StatusCode::HTTP_OK);
+        return $res->withJson($review, StatusCode::HTTP_OK);
     }
 
     function update(Request $req, Response $res, $args)

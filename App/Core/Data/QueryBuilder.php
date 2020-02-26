@@ -4,6 +4,8 @@ namespace App\Core\Data;
 
 use App\Core\Exceptions\AppException;
 
+use function App\Core\Utils\startsWith;
+
 define("SPACE", " ");
 
 class QueryBuilder
@@ -34,24 +36,9 @@ class QueryBuilder
         return DataAccess::getInstance();
     }
 
-    function select($column = "*", $operator = null)
+    function select($selection = "*")
     {
-        if (is_array($column)) {
-            $selection = "(" . implode(", ", $column) . ")";
-            $operator = null;
-        } else {
-            $selection = $column;
-        }
-
-        if ($operator != null) {
-            if (in_array($operator, ["MIN", "MAX", "COUNT", "AVG", "SUM"])) {
-                $selection = $operator . "(" . $selection . ")";
-            } else {
-                throw new AppException("Invalid operator in SELECT statement");
-            }
-        }
-
-        $this->sentence = ("SELECT" . $selection . "FROM" . SPACE . $this->table);
+        $this->sentence = ("SELECT" . SPACE . $selection . SPACE . "FROM" . SPACE . $this->table);
 
         return $this;
     }
@@ -208,12 +195,12 @@ class QueryBuilder
 
     function sum($col)
     {
-        return $this->select($col, "SUM");
+        return $this->select("SUM(" . $col . ")");
     }
 
     function count($col = "*")
     {
-        return $this->select($col, "COUNT");
+        return $this->select("COUNT(" . $col . ")");
     }
 
     function setFetchMode($fetchMode, $fetchParam)

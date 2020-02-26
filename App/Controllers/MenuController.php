@@ -20,9 +20,9 @@ class MenuController
 
     function list(Request $req, Response $res, $args)
     {
-        $data = $this->menuService->list();
+        $menu = $this->menuService->list();
 
-        return $res->withJson(["menu" => $data], StatusCode::HTTP_OK);
+        return $res->withJson($menu, StatusCode::HTTP_OK);
     }
 
     function create(Request $req, Response $res, $args)
@@ -46,7 +46,7 @@ class MenuController
 
         $menu = $this->menuService->read($id);
 
-        return $res->withJson(["menu" => $menu], StatusCode::HTTP_OK);
+        return $res->withJson($menu, StatusCode::HTTP_OK);
     }
 
     function update(Request $req, Response $res, $args)

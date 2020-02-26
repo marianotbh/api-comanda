@@ -20,9 +20,9 @@ class OrderController
 
     function list(Request $req, Response $res, $args)
     {
-        $data = $this->orderService->list();
+        $orders = $this->orderService->list();
 
-        return $res->withJson(["orders" => $data], StatusCode::HTTP_OK);
+        return $res->withJson($orders, StatusCode::HTTP_OK);
     }
 
     function create(Request $req, Response $res, $args)
@@ -39,35 +39,41 @@ class OrderController
 
     function read(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"];
+        $code = (int) $args["code"];
 
-        $order = $this->orderService->read($id);
+        $order = $this->orderService->read($code);
 
-        return $res->withJson(["order" => $order ?: null], StatusCode::HTTP_OK);
+        return $res->withJson($order, StatusCode::HTTP_OK);
     }
 
     function update(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"];
+        $code = (int) $args["code"];
 
         $model = Validator::check([
-            "firstName" => ["required", "minLength:2"],
-            "lastName" => ["required", "minLength:2"],
-            "email" => ["required", "email"],
-            "role" => ["required"]
+            "user" => "required",
+            "table" => "required",
+            "detail" => "required"
         ],  $req->getParsedBody());
 
-        $this->orderService->update($id, $model);
+        $this->orderService->update($code, $model);
 
         return $res->withJson(["message" => "Order edited"], StatusCode::HTTP_OK);
     }
 
     function delete(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"];
+        $code = (int) $args["code"];
 
-        $this->orderService->delete($id);
+        $this->orderService->delete($code);
 
         return $res->withJson(["message" => "Order deleted"], StatusCode::HTTP_OK);
+    }
+
+    function getStates(Request $req, Response $res, $args)
+    {
+        $states = $this->orderService->states();
+
+        return $res->withJson($states, StatusCode::HTTP_OK);
     }
 }

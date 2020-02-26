@@ -5,16 +5,14 @@ namespace App\Models;
 use \App\Core\Data\Model;
 use JsonSerializable;
 
-class Menu extends Model implements JsonSerializable
+class Detail extends Model implements JsonSerializable
 {
-    static protected $table = "menu";
-
     public $id;
-    public $name;
-    public $description;
-    public $price;
-    public $stock;
-    public $role;
+    public $user;
+    public $order;
+    public $menu;
+    public $amount;
+    public $state;
     public $created_at;
     public $updated_at;
     public $removed_at;
@@ -23,11 +21,11 @@ class Menu extends Model implements JsonSerializable
     {
         return [
             "id" => $this->id,
-            "name" => $this->name,
-            "description" => $this->description,
-            "price" => $this->price,
-            "stock" => $this->stock,
-            "role" => $this->role,
+            "user" => $this->user,
+            "order" => $this->order,
+            "menu" => $this->menu,
+            "amount" => $this->amount,
+            "state" => $this->state,
             "createdAt" => $this->created_at,
             "updatedAt" => $this->updated_at,
             "removedAt" => $this->removed_at,

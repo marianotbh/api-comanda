@@ -36,21 +36,6 @@ class AuthController
         return $res->withJson(["token" => $token], StatusCode::HTTP_OK);
     }
 
-    public function register(Request $req, Response $res, $args)
-    {
-        $model = Validator::check([
-            "name" => ["required", "minLength:5"],
-            "password" => ["required", "minLength:5"],
-            "passwordRepeat" => ["required", "minLength:5"],
-            "email" => ["required", "email"],
-            "role" => ["required"]
-        ], $req->getParsedBody());
-
-        $this->authService->register($model);
-
-        return $res->withJson(["message" => "User created"], StatusCode::HTTP_OK);
-    }
-
     public function status(Request $req, Response $res, $args)
     {
         $token = $req->getAttribute("payload", null);
@@ -60,6 +45,13 @@ class AuthController
         }
 
         return $res->withJson(["message" => "OK"], StatusCode::HTTP_OK);
+    }
+
+    public function getRoles(Request $req, Response $res, $args)
+    {
+        $roles = $this->authService->roles();
+
+        return $res->withJson($roles, StatusCode::HTTP_OK);
     }
 
     public function changePassword(Request $req, Response $res, $args)

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use App\Core\Data\Model;
+use \App\Core\Data\Model;
 
-class Role extends Model
+class TableState extends Model
 {
     public $id;
     public $name;

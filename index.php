@@ -1,6 +1,7 @@
 <?php
 
 require './vendor/autoload.php';
+require_once './App/Core/Utils/Functions.php';
 
 date_default_timezone_set("America/Argentina/Buenos_Aires");
 
@@ -13,7 +14,6 @@ use App\Controllers\AuthController;
 use App\Controllers\MenuController;
 use App\Controllers\OrderController;
 use App\Controllers\ReviewController;
-use App\Controllers\RoleController;
 use App\Controllers\TableController;
 use App\Controllers\UserController;
 
@@ -33,9 +33,12 @@ $app->options('/{routes:.+}', function (Request $req, Response $res, $args) {
     return $res;
 });
 
-$app->post('/login[/]', AuthController::class . ":login");
-$app->post('/register[/]', AuthController::class . ":register");
-$app->get('/status[/]', AuthController::class . ":status");
+$app->group('/auth', function (App $app) {
+    $app->post('/login[/]', AuthController::class . ":login");
+    $app->get('/status[/]', AuthController::class . ":status");
+    $app->get('/roles[/]', AuthController::class . ":getRoles");
+    $app->post('/password[/]', AuthController::class . ":changePassword");
+});
 
 $app->group('/users', function (App $app) {
     $app->get('[/]', UserController::class . ":list");
@@ -45,15 +48,8 @@ $app->group('/users', function (App $app) {
     $app->delete('/{id}[/]', UserController::class . ":delete");
 }); //->add(new AuthMiddleware());
 
-$app->group('/roles', function (App $app) {
-    $app->get('[/]', RoleController::class . ":list");
-    $app->get('/{id}[/]', RoleController::class . ":read");
-    $app->post('[/]', RoleController::class . ":create");
-    $app->put('/{id}[/]', RoleController::class . ":update");
-    $app->delete('/{id}[/]', RoleController::class . ":delete");
-});
-
 $app->group('/orders', function (App $app) {
+    $app->get('/states[/]', OrderController::class . ":getStates");
     $app->get('[/]', OrderController::class . ":list");
     $app->get('/{id}[/]', OrderController::class . ":read");
     $app->post('[/]', OrderController::class . ":create");
@@ -62,6 +58,7 @@ $app->group('/orders', function (App $app) {
 });
 
 $app->group('/tables', function (App $app) {
+    $app->get('/states[/]', TableController::class . ":getStates");
     $app->get('[/]', TableController::class . ":list");
     $app->get('/{id}[/]', TableController::class . ":read");
     $app->post('[/]', TableController::class . ":create");

@@ -20,9 +20,35 @@ class UserController
 
     function list(Request $req, Response $res, $args)
     {
-        $data = $this->userService->list();
+        $page = $req->getQueryParam("page", 1);
+        $length = $req->getQueryParam("length", 100);
+        $field = $req->getQueryParam("field", "id");
+        $order = $req->getQueryParam("order", "ASC");
 
-        return $res->withJson(["users" => $data], StatusCode::HTTP_OK);
+        [
+            "data" => $users,
+            "total" => $total
+        ] = $this->userService->list($page, $length, $field, $order);
+
+        return $res->withHeader("X-Total-Count", $total)
+            ->withJson($users, StatusCode::HTTP_OK);
+    }
+
+    function create(Request $req, Response $res, $args)
+    {
+        $model = Validator::check([
+            "name" => ["required", "minLength:5"],
+            "password" => ["required", "minLength:5"],
+            "passwordRepeat" => ["required", "minLength:5"],
+            "firstName" => ["required", "minLength:2"],
+            "lastName" => ["required", "minLength:2"],
+            "email" => ["required", "email"],
+            "role" => ["required"]
+        ],  $req->getParsedBody());
+
+        $this->userService->create($model);
+
+        return $res->withJson(["message" => "User created"], StatusCode::HTTP_CREATED);
     }
 
     function read(Request $req, Response $res, $args)
@@ -31,7 +57,7 @@ class UserController
 
         $user = $this->userService->read($id);
 
-        return $res->withJson(["user" => $user ?: null], StatusCode::HTTP_OK);
+        return $res->withJson($user, StatusCode::HTTP_OK);
     }
 
     function update(Request $req, Response $res, $args)
@@ -41,8 +67,7 @@ class UserController
         $model = Validator::check([
             "firstName" => ["required", "minLength:2"],
             "lastName" => ["required", "minLength:2"],
-            "email" => ["required", "email"],
-            "role" => ["required"]
+            "email" => ["required", "email"]
         ],  $req->getParsedBody());
 
         $this->userService->update($id, $model);

@@ -5,6 +5,11 @@ namespace App\Core\Data;
 use \App\Core\Exceptions\ModelException;
 use \App\Core\Data\QueryBuilder;
 
+use function App\Core\Utils\getLastItem;
+use function App\Core\Utils\kebabize;
+use function App\Core\Utils\plurify;
+use function App\Core\Utils\splitByUpperCase;
+
 abstract class Model
 {
     private static function get_table()
@@ -20,9 +25,9 @@ abstract class Model
             $lowercase = $calledClass::$lowercase ?? true;
             $plurify = $calledClass::$plurify ?? true;
 
+            if ($kebabize) $name = kebabize($name);
             if ($lowercase) $name = strtolower($name);
             if ($plurify) $name = plurify($name);
-            if ($kebabize) $name = kebabize($name);
 
             return $name;
         }
@@ -90,6 +95,19 @@ abstract class Model
         return $result;
     }
 
+    static function count($col = "*")
+    {
+        $table = self::get_table();
+
+        $qb = new QueryBuilder($table);
+
+        $result = $qb->count($col)
+            ->setFetchMode(\PDO::FETCH_COLUMN, null)
+            ->fetch();
+
+        return $result[0];
+    }
+
     static function where($prop, $operator = "=", $value = null)
     {
         $result = self::all()->where($prop, $operator, $value);
@@ -134,41 +152,5 @@ abstract class Model
             ->run();
 
         return $result;
-    }
-}
-
-function getLastItem($array)
-{
-    return array_values(array_slice($array, -1))[0];
-}
-
-function splitByUpperCase($camelCaseString)
-{
-    return preg_split('/(?<=[a-z])(?=[A-Z])/x', $camelCaseString);
-}
-
-function startsWith($haystack, $needle)
-{
-    return substr_compare($haystack, $needle, 0, strlen($needle)) === 0;
-}
-
-function endsWith($haystack, $needle)
-{
-    return substr_compare($haystack, $needle, -strlen($needle)) === 0;
-}
-
-function kebabize($string)
-{
-    return implode("_", splitByUpperCase($string));
-}
-
-function plurify($string)
-{
-    if (endsWith($string, "s")) {
-        return $string . "es";
-    } else if (endsWith($string, "y")) {
-        return substr($string, 0, strlen($string) - 2) . "ies";
-    } else {
-        return $string . "s";
     }
 }

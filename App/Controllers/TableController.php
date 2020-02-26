@@ -20,9 +20,9 @@ class TableController
 
     function list(Request $req, Response $res, $args)
     {
-        $data = $this->tableService->list();
+        $tables = $this->tableService->list();
 
-        return $res->withJson(["tables" => $data], StatusCode::HTTP_OK);
+        return $res->withJson($tables, StatusCode::HTTP_OK);
     }
 
     function create(Request $req, Response $res, $args)
@@ -39,16 +39,16 @@ class TableController
 
     function read(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"];
+        $code = (int) $args["code"];
 
-        $table = $this->tableService->read($id);
+        $table = $this->tableService->read($code);
 
-        return $res->withJson(["table" => $table ?: null], StatusCode::HTTP_OK);
+        return $res->withJson($table, StatusCode::HTTP_OK);
     }
 
     function update(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"];
+        $code = (int) $args["code"];
 
         $model = Validator::check([
             "firstName" => ["required", "minLength:2"],
@@ -57,17 +57,24 @@ class TableController
             "role" => ["required"]
         ],  $req->getParsedBody());
 
-        $this->tableService->update($id, $model);
+        $this->tableService->update($code, $model);
 
         return $res->withJson(["message" => "Table edited"], StatusCode::HTTP_OK);
     }
 
     function delete(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"];
+        $code = (int) $args["code"];
 
-        $this->tableService->delete($id);
+        $this->tableService->delete($code);
 
         return $res->withJson(["message" => "Table deleted"], StatusCode::HTTP_OK);
+    }
+
+    function getStates(Request $req, Response $res, $args)
+    {
+        $states = $this->tableService->states();
+
+        return $res->withJson($states, StatusCode::HTTP_OK);
     }
 }

@@ -18,31 +18,14 @@ class AuthService
 
         $user->last_login_at = date('Y-m-d H:i:s');
         $user->edit();
+
         $payload = json_decode(json_encode($user));
 
         return JWTHelper::encode($payload, $remember);
     }
 
-    function register($model)
+    function roles()
     {
-        $user = User::findByName($model->name);
-
-        if ($user != null) throw new AppException("Username already taken");
-        if ($model->password != $model->passwordRepeat) throw new AppException("Passwords don't match");
-
-        $roles = array_map(function (Role $role) {
-            return $role->id;
-        }, Role::whereRemoved_at(null)->fetch());
-
-        if (!in_array($model->role, $roles)) throw new AppException("Invalid role");
-
-        $user = new User();
-
-        $user->name = $model->name;
-        $user->password = password_hash($model->password, PASSWORD_DEFAULT);
-        $user->email = $model->email;
-        $user->role = $model->role;
-
-        return $user->create();
+        return Role::all()->fetch();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\OrderState;
 use App\Core\Exceptions\AppException;
 
 class OrderService
@@ -18,10 +19,10 @@ class OrderService
         return $orders;
     }
 
-    function read($id)
+    function read($code)
     {
         /** @var Order */
-        $order = Order::findById($id);
+        $order = Order::findByCode($code);
 
         return $order;
     }
@@ -36,10 +37,10 @@ class OrderService
         return $order->create();
     }
 
-    function update($id, $model)
+    function update($code, $model)
     {
         /** @var Order */
-        $order = Order::findById($id);
+        $order = Order::findByCode($code);
 
         if ($order == null) throw new AppException("Order not found");
 
@@ -50,10 +51,10 @@ class OrderService
         return $order->edit();
     }
 
-    function remove($id)
+    function remove($code)
     {
         /** @var Order */
-        $order = Order::findById($id);
+        $order = Order::findByCode($code);
 
         if ($order == null) throw new AppException("Order not found");
 
@@ -62,13 +63,18 @@ class OrderService
         return $order->edit();
     }
 
-    function delete($id)
+    function delete($code)
     {
         /** @var Order */
-        $order = Order::findById($id);
+        $order = Order::findByCode($code);
 
         if ($order == null) throw new AppException("Order not found");
 
         return $order->delete();
+    }
+
+    function states()
+    {
+        return OrderState::all()->fetch();
     }
 }
