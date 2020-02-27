@@ -34,7 +34,7 @@ class MenuService
         $menu->description = $model->description;
         $menu->price = $model->price;
         $menu->stock = $model->stock;
-        $menu->category = $model->category;
+        $menu->role = $model->role;
 
         return $menu->create();
     }
@@ -50,7 +50,7 @@ class MenuService
         $menu->description = $model->description;
         $menu->price = $model->price;
         $menu->stock = $model->stock;
-        $menu->category = $model->category;
+        $menu->role = $model->role;
         $menu->updated_at = date('Y-m-d H:i:s');
 
         return $menu->edit();

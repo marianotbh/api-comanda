@@ -32,7 +32,7 @@ class MenuController
             "description" => ["required", "minLength:5"],
             "price" => "required",
             "stock" => "required",
-            "category" => "required"
+            "role" => "required"
         ], $req->getParsedBody());
 
         $this->menuService->create($model);
@@ -58,7 +58,7 @@ class MenuController
             "description" => ["required", "minLength:5"],
             "price" => "required",
             "stock" => "required",
-            "category" => "required"
+            "role" => "required"
         ],  $req->getParsedBody());
 
         $this->menuService->update($id, $model);
