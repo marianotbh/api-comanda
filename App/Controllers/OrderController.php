@@ -39,7 +39,7 @@ class OrderController
 
     function read(Request $req, Response $res, $args)
     {
-        $code = (int) $args["code"];
+        $code = $args["code"];
 
         $order = $this->orderService->read($code);
 
@@ -48,7 +48,7 @@ class OrderController
 
     function update(Request $req, Response $res, $args)
     {
-        $code = (int) $args["code"];
+        $code = $args["code"];
 
         $model = Validator::check([
             "user" => "required",
@@ -63,7 +63,7 @@ class OrderController
 
     function delete(Request $req, Response $res, $args)
     {
-        $code = (int) $args["code"];
+        $code = $args["code"];
 
         $this->orderService->delete($code);
 

@@ -51,19 +51,19 @@ $app->group('/users', function (App $app) {
 $app->group('/orders', function (App $app) {
     $app->get('/states[/]', OrderController::class . ":getStates");
     $app->get('[/]', OrderController::class . ":list");
-    $app->get('/{id}[/]', OrderController::class . ":read");
+    $app->get('/{code}[/]', OrderController::class . ":read");
     $app->post('[/]', OrderController::class . ":create");
-    $app->put('/{id}[/]', OrderController::class . ":update");
-    $app->delete('/{id}[/]', OrderController::class . ":delete");
+    $app->put('/{code}[/]', OrderController::class . ":update");
+    $app->delete('/{code}[/]', OrderController::class . ":delete");
 });
 
 $app->group('/tables', function (App $app) {
     $app->get('/states[/]', TableController::class . ":getStates");
     $app->get('[/]', TableController::class . ":list");
-    $app->get('/{id}[/]', TableController::class . ":read");
+    $app->get('/{code}[/]', TableController::class . ":read");
     $app->post('[/]', TableController::class . ":create");
-    $app->put('/{id}[/]', TableController::class . ":update");
-    $app->delete('/{id}[/]', TableController::class . ":delete");
+    $app->put('/{code}[/]', TableController::class . ":update");
+    $app->delete('/{code}[/]', TableController::class . ":delete");
 });
 
 $app->group('/menu', function (App $app) {

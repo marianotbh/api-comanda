@@ -28,8 +28,8 @@ class TableController
     function create(Request $req, Response $res, $args)
     {
         $model = Validator::check([
-            "name" => ["required", "minLength:5"],
-            "description" => ["required", "minLength:5"]
+            "code" => ["required", "minLength:5", "maxLength:5"],
+            "capacity" => ["required"],
         ], $req->getParsedBody());
 
         $this->tableService->create($model);
@@ -39,7 +39,7 @@ class TableController
 
     function read(Request $req, Response $res, $args)
     {
-        $code = (int) $args["code"];
+        $code = $args["code"];
 
         $table = $this->tableService->read($code);
 
@@ -48,13 +48,11 @@ class TableController
 
     function update(Request $req, Response $res, $args)
     {
-        $code = (int) $args["code"];
+        $code = $args["code"];
 
         $model = Validator::check([
-            "firstName" => ["required", "minLength:2"],
-            "lastName" => ["required", "minLength:2"],
-            "email" => ["required", "email"],
-            "role" => ["required"]
+            "capacity" => ["required"],
+            "state" => ["required"]
         ],  $req->getParsedBody());
 
         $this->tableService->update($code, $model);
@@ -64,7 +62,7 @@ class TableController
 
     function delete(Request $req, Response $res, $args)
     {
-        $code = (int) $args["code"];
+        $code = $args["code"];
 
         $this->tableService->delete($code);
 

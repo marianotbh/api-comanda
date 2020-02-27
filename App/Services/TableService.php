@@ -31,8 +31,9 @@ class TableService
     {
         $table = new Table();
 
-        $table->name = $model->name;
-        $table->description = $model->description;
+        $table->code = $model->code;
+        $table->capacity = $model->capacity;
+        $table->state = 0; // Available
 
         return $table->create();
     }
@@ -44,8 +45,8 @@ class TableService
 
         if ($table == null) throw new AppException("Table not found");
 
-        $table->name = $model->name;
-        $table->description = $model->description;
+        $table->capacity = $model->capacity;
+        $table->state = $model->state;
         $table->updated_at = date('Y-m-d H:i:s');
 
         return $table->edit();
