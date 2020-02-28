@@ -20,10 +20,10 @@ class OrderController
 
     function list(Request $req, Response $res, $args)
     {
-        $page = $req->getQueryParam("page", 1);
-        $length = $req->getQueryParam("length", 100);
-        $field = $req->getQueryParam("field", "id");
-        $order = $req->getQueryParam("order", "ASC");
+        $page = $req->getQueryParam("page") ?: 1;
+        $length = $req->getQueryParam("length") ?: 100;
+        $field = $req->getQueryParam("field") ?: "code";
+        $order = $req->getQueryParam("order") ?: "ASC";
 
         [
             "data" => $orders,

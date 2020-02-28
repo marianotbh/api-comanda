@@ -24,7 +24,7 @@ class TableMiddleware
             $this->dataSource->cambiarEstado($mesa, 0);
             return $response;
         } catch (Exception $e) {
-            return $response->withJson($this->handleException($e), 400);
+            //return $response->withJson($this->handleException($e), 400);
         }
     }
 
@@ -36,7 +36,7 @@ class TableMiddleware
             $this->dataSource->cambiarEstado($mesa, 1);
             return $response;
         } catch (Exception $e) {
-            return $response->withJson($this->handleException($e), 400);
+            //return $response->withJson($this->handleException($e), 400);
         }
     }
 
@@ -48,7 +48,7 @@ class TableMiddleware
             $this->dataSource->cambiarEstado($mesa, 2);
             return $response;
         } catch (Exception $e) {
-            return $response->withJson($this->handleException($e), 400);
+            //return $response->withJson($this->handleException($e), 400);
         }
     }
 
@@ -60,7 +60,7 @@ class TableMiddleware
             $this->dataSource->cambiarEstado($mesa, 3);
             return $response;
         } catch (Exception $e) {
-            return $response->withJson($this->handleException($e), 400);
+            //return $response->withJson($this->handleException($e), 400);
         }
     }
 }

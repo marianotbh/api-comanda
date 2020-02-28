@@ -45,11 +45,11 @@ $app->group('/auth', function (App $app) {
 
 $app->group('/users', function (App $app) {
     $app->get('[/]', UserController::class . ":list");
-    $app->get('/{id}[/]', UserController::class . ":read");
+    $app->get('/{name}[/]', UserController::class . ":read");
     $app->post('[/]', UserController::class . ":create");
     $app->put('/{id}[/]', UserController::class . ":update");
     $app->delete('/{id}[/]', UserController::class . ":delete");
-}); //->add(new AuthMiddleware());
+})->add(new AuthMiddleware());
 
 $app->group('/orders', function (App $app) {
     $app->get('/states[/]', OrderController::class . ":getStates");
@@ -58,7 +58,7 @@ $app->group('/orders', function (App $app) {
     $app->post('[/]', OrderController::class . ":create");
     $app->put('/{code}[/]', OrderController::class . ":update");
     $app->delete('/{code}[/]', OrderController::class . ":delete");
-});
+})->add(new AuthMiddleware());
 
 $app->group('/tables', function (App $app) {
     $app->get('/states[/]', TableController::class . ":getStates");
@@ -67,7 +67,7 @@ $app->group('/tables', function (App $app) {
     $app->post('[/]', TableController::class . ":create");
     $app->put('/{code}[/]', TableController::class . ":update");
     $app->delete('/{code}[/]', TableController::class . ":delete");
-});
+})->add(new AuthMiddleware());
 
 $app->group('/menu', function (App $app) {
     $app->get('[/]', MenuController::class . ":list");
@@ -75,7 +75,7 @@ $app->group('/menu', function (App $app) {
     $app->post('[/]', MenuController::class . ":create");
     $app->put('/{id}[/]', MenuController::class . ":update");
     $app->delete('/{id}[/]', MenuController::class . ":delete");
-});
+})->add(new AuthMiddleware());
 
 $app->group('/reviews', function (App $app) {
     $app->get('[/]', ReviewController::class . ":list");
@@ -83,7 +83,7 @@ $app->group('/reviews', function (App $app) {
     $app->post('[/]', ReviewController::class . ":create");
     $app->put('/{id}[/]', ReviewController::class . ":update");
     $app->delete('/{id}[/]', ReviewController::class . ":delete");
-});
+})->add(new AuthMiddleware());
 
 $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function (Request $req, Response $res) {
     $handler = $this->notFoundHandler;

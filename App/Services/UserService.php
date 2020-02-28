@@ -31,7 +31,7 @@ class UserService
 
         $roles = array_map(function (Role $role) {
             return $role->id;
-        }, Role::whereRemoved_at(null)->fetch());
+        }, Role::all()->fetch());
 
         if (!in_array($model->role, $roles)) throw new AppException("Invalid role");
 
@@ -48,9 +48,9 @@ class UserService
     }
 
     /** @return User */
-    function read($id)
+    function read($name)
     {
-        return User::findById($id);
+        return User::findByName($name);
     }
 
     /** @return bool */
@@ -64,6 +64,7 @@ class UserService
         $user->email = $model->email;
         $user->first_name = $model->firstName;
         $user->last_name = $model->lastName;
+        $user->role = $model->role;
         $user->updated_at = date('Y-m-d H:i:s');
 
         return $user->edit();

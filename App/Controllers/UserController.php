@@ -53,9 +53,9 @@ class UserController
 
     function read(Request $req, Response $res, $args)
     {
-        $id = (int) $args["id"];
+        $name = $args["name"];
 
-        $user = $this->userService->read($id);
+        $user = $this->userService->read($name);
 
         return $res->withJson($user, StatusCode::HTTP_OK);
     }
@@ -67,7 +67,8 @@ class UserController
         $model = Validator::check([
             "firstName" => ["required", "minLength:2"],
             "lastName" => ["required", "minLength:2"],
-            "email" => ["required", "email"]
+            "email" => ["required", "email"],
+            "role" => ["required"]
         ],  $req->getParsedBody());
 
         $this->userService->update($id, $model);
