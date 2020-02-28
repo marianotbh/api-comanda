@@ -5,24 +5,40 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\OrderState;
 use App\Core\Exceptions\AppException;
+use App\Core\Utils\HashHelper;
+use App\Models\OrderDetail;
+
+use function App\Core\Utils\kebabize;
 
 class OrderService
 {
-    function list()
+    function list($page = 1, $length = 100, $field = "createdAt", $order = "ASC")
     {
         /** @var Order[] */
         $orders = Order::whereRemoved_at(null)
-            ->orderBy("created_at")
-            ->take(10)
+            ->skip(($page - 1) * $length)
+            ->take($length)
+            ->orderBy(kebabize($field), $order)
             ->fetch();
 
-        return $orders;
+        foreach ($orders as $order) {
+            $order->detail = OrderDetail::whereOrder($order->code)->fetch();
+        }
+
+        return [
+            "data" => $orders,
+            "total" => Order::count()
+        ];
     }
 
     function read($code)
     {
         /** @var Order */
         $order = Order::findByCode($code);
+
+        if ($order != null) {
+            $order->detail = OrderDetail::whereOrder($order->code)->fetch();
+        }
 
         return $order;
     }
@@ -31,10 +47,26 @@ class OrderService
     {
         $order = new Order();
 
-        $order->name = $model->name;
-        $order->description = $model->description;
+        $code = HashHelper::generate(5);
 
-        return $order->create();
+        $order->code = $code;
+        $order->user = $model->user;
+        $order->table = $model->table;
+
+        $order->create();
+
+        foreach ($model->detail as $d) {
+            $detail = new OrderDetail();
+
+            $detail->order = $code;
+            $detail->menu = $d->menu;
+            $detail->amount = $d->amount;
+            $detail->state = 0;
+
+            $detail->create();
+        }
+
+        return $code;
     }
 
     function update($code, $model)
@@ -44,11 +76,36 @@ class OrderService
 
         if ($order == null) throw new AppException("Order not found");
 
-        $order->name = $model->name;
-        $order->description = $model->description;
-        $order->updated_at = date('Y-m-d H:i:s');
+        $order->user = $model->user;
+        $order->table = $model->table;
+        $order->state = $model->state;
 
-        return $order->edit();
+        $order->edit();
+
+        foreach ($model->detail as $d) {
+
+            $detail = OrderDetail::findByCode($d->id);
+
+            if ($detail != null) {
+                $detail->menu = $d->menu;
+                $detail->amount = $d->amount;
+                $detail->state = 0;
+
+                $detail->edit();
+            } else {
+                $detail = new OrderDetail();
+
+                $detail->order = $code;
+                $detail->menu = $d->menu;
+                $detail->amount = $d->amount;
+                $detail->state = 0;
+                $order->updated_at = date('Y-m-d H:i:s');
+
+                $detail->create();
+            }
+        }
+
+        return $order->code;
     }
 
     function remove($code)

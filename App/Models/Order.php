@@ -13,6 +13,7 @@ class Order extends Model implements JsonSerializable
     public $state;
     public $user;
     public $table;
+    public $detail;
     public $created_at;
     public $updated_at;
     public $removed_at;
@@ -24,6 +25,7 @@ class Order extends Model implements JsonSerializable
             "state" => $this->state,
             "user" => $this->user,
             "table" => $this->table,
+            "detail" => $this->detail,
             "createdAt" => $this->created_at,
             "updatedAt" => $this->updated_at,
             "removedAt" => $this->removed_at,

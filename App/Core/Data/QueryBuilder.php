@@ -51,11 +51,14 @@ class QueryBuilder
 
         $keys = array_keys($vars);
         $values = array_values($vars);
+
         $tokens = implode(", ", array_map(function () {
             return "?";
         }, $keys));
 
-        $queryString = "INSERT INTO" . SPACE . $this->table . SPACE . "(" . implode(", ", $keys) . ") VALUES (" . $tokens . ")";
+        $queryString = "INSERT INTO" . SPACE . $this->table . SPACE . "(" . implode(", ", array_map(function ($key) {
+            return "`" . $key . "`";
+        }, $keys)) . ") VALUES (" . $tokens . ")";
 
         foreach ($values as $value) {
             array_push($this->values, $value);
@@ -75,7 +78,7 @@ class QueryBuilder
         $keys = array_keys($vars);
         $values = array_values($vars);
         $tokens = implode(", ", array_map(function ($key) {
-            return $key . SPACE . "=" . SPACE . "?";
+            return "`" . $key . "`" . SPACE . "=" . SPACE . "?";
         }, $keys));
 
         $queryString = "UPDATE" . SPACE . $this->table . SPACE . "SET" . SPACE . $tokens;
@@ -102,18 +105,18 @@ class QueryBuilder
             $tokens = implode(", ", array_map(function ($item) {
                 return "?";
             }, $value));
-            $condition = $prop . SPACE . ($operator == false ? "NOT IN" : "IN") . SPACE . "(" . $tokens . ")";
+            $condition = "`$prop`" . SPACE . ($operator == false ? "NOT IN" : "IN") . SPACE . "(" . $tokens . ")";
             foreach ($value as $v) {
                 array_push($this->values, $v);
             }
         } else if (is_string($value)) {
-            $condition = $prop . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "?";
+            $condition = "`$prop`" . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "?";
             array_push($this->values, "%" .  $value . "%");
         } else if ($value == null) {
-            $condition = $prop . SPACE . ($operator == false ? "IS NOT" : "IS") . SPACE . "NULL";
+            $condition = "`$prop`" . SPACE . ($operator == false ? "IS NOT" : "IS") . SPACE . "NULL";
         } else {
             if (in_array($operator, ["=", "!=", "<>", "<", ">", "<=", ">="])) {
-                $condition = $prop . SPACE . $operator . SPACE . "?";
+                $condition = "`$prop`" . SPACE . $operator . SPACE . "?";
                 array_push($this->values, $value);
             } else {
                 throw new AppException("Invalid operator in 'where' static method");
@@ -133,18 +136,18 @@ class QueryBuilder
             $tokens = implode(", ", array_map(function ($item) {
                 return "?";
             }, $value));
-            $condition = $prop . SPACE . ($operator == false ? "NOT IN" : "IN") . SPACE . "(" . $tokens . ")";
+            $condition = "`$prop`" . SPACE . ($operator == false ? "NOT IN" : "IN") . SPACE . "(" . $tokens . ")";
             foreach ($value as $v) {
                 array_push($this->values, $v);
             }
         } else if (is_string($value)) {
-            $condition = $prop . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "?";
+            $condition = "`$prop`" . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "?";
             array_push($this->values, "%" .  $value . "%");
         } else if ($value == null) {
-            $condition = $prop . SPACE . ($operator == false ? "IS NOT" : "IS") . SPACE . "NULL";
+            $condition = "`$prop`" . SPACE . ($operator == false ? "IS NOT" : "IS") . SPACE . "NULL";
         } else {
             if (in_array($operator, ["=", "!=", "<>", "<", ">", "<=", ">="])) {
-                $condition = $prop . SPACE . $operator . SPACE . "?";
+                $condition = "`$prop`" . SPACE . $operator . SPACE . "?";
                 array_push($this->values, $value);
             } else {
                 throw new AppException("Invalid operator in 'where' static method");
@@ -176,7 +179,7 @@ class QueryBuilder
             throw new AppException("Invalid order property");
         }
 
-        $this->groupCol = $prop;
+        $this->groupCol = "`$prop`";
 
         return $this;
     }
@@ -187,7 +190,7 @@ class QueryBuilder
             throw new AppException("Invalid order property");
         }
 
-        $this->orderCol = $prop;
+        $this->orderCol = "`$prop`";
         $this->orderDir = $direction;
 
         return $this;
@@ -226,6 +229,7 @@ class QueryBuilder
         $query = $this->data()->prepare($queryString);
         $query->execute($this->values);
         $this->reset();
+
         return $query->rowCount() > 0 ? true : false;
     }
 

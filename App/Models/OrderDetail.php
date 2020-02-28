@@ -5,7 +5,7 @@ namespace App\Models;
 use \App\Core\Data\Model;
 use JsonSerializable;
 
-class Detail extends Model implements JsonSerializable
+class OrderDetail extends Model implements JsonSerializable
 {
     public $id;
     public $user;
@@ -22,7 +22,6 @@ class Detail extends Model implements JsonSerializable
         return [
             "id" => $this->id,
             "user" => $this->user,
-            "order" => $this->order,
             "menu" => $this->menu,
             "amount" => $this->amount,
             "state" => $this->state,
