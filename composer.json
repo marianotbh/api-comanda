@@ -3,7 +3,8 @@
 		"slim/slim": "^3.0",
 		"firebase/php-jwt": "^5.0",
 		"phpmailer/phpmailer": "^6.1",
-		"swiftmailer/swiftmailer": "6.0"
+		"swiftmailer/swiftmailer": "6.0",
+		"vlucas/phpdotenv": "^4.1"
 	},
 	"config": {
 		"optimize-autoloader": true

@@ -14,8 +14,13 @@ class DataAccess
 
     private function __construct()
     {
+        $db_host = getenv('DB_HOST');
+        $db_name = getenv('DB_NAME');
+        $db_username = getenv('DB_USERNAME');
+        $db_password = getenv('DB_PASSWORD');
+
         try {
-            $this->pdo = new PDO('mysql:host=localhost;dbname=comanda;charset=utf8', 'comanda_user', 'comanda123', array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
+            $this->pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8", $db_username, $db_password, array(PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
             $this->pdo->exec("SET CHARACTER SET utf8");
         } catch (PDOException $e) {
             print $e->getMessage();

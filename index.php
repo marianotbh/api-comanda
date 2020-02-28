@@ -24,6 +24,9 @@ use App\Middleware\AuthMiddleware;
 
 $appConfig = require './config.php';
 
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 $app = new App($appConfig);
 
 $app->add(new ErrorHandlerMiddleware());
