@@ -8,6 +8,7 @@ use JsonSerializable;
 class Order extends Model implements JsonSerializable
 {
     static protected $pk = "code";
+    static protected $ignore = ["detail"];
 
     public $code;
     public $state;
@@ -20,15 +21,20 @@ class Order extends Model implements JsonSerializable
 
     function jsonSerialize()
     {
-        return [
+        $serialize = [
             "code" => $this->code,
             "state" => $this->state,
             "user" => $this->user,
             "table" => $this->table,
-            "detail" => $this->detail,
             "createdAt" => $this->created_at,
             "updatedAt" => $this->updated_at,
             "removedAt" => $this->removed_at,
         ];
+
+        if (is_array($this->detail) && count($this->detail) > 0) {
+            $serialize["detail"] = $this->detail;
+        }
+
+        return $serialize;
     }
 }

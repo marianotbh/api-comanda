@@ -117,11 +117,19 @@ abstract class Model
 
     function create()
     {
-        $table = get_class($this)::get_table();
+        $class = get_class($this);
+
+        $table = $class::get_table();
+
+        $ignore = isset($class::$ignore) && is_array($class::$ignore) ? $class::$ignore : [];
+
+        $final = count($ignore) > 0 ? (object) array_filter(get_object_vars($this), function ($key) use ($ignore) {
+            return in_array($key, $ignore) ? false : true;
+        }, ARRAY_FILTER_USE_KEY) : $this;
 
         $qb = new QueryBuilder($table);
 
-        $result = $qb->insert($this)->run();
+        $result = $qb->insert($final)->run();
 
         return $result;
     }
@@ -131,9 +139,19 @@ abstract class Model
         $pk = get_class($this)::get_pk();
         $table = get_class($this)::get_table();
 
+        $class = get_class($this);
+
+        $table = $class::get_table();
+
+        $ignore = isset($class::$ignore) && is_array($class::$ignore) ? $class::$ignore : [];
+
+        $final = count($ignore) > 0 ? (object) array_filter(get_object_vars($this), function ($key) use ($ignore) {
+            return in_array($key, $ignore) ? false : true;
+        }, ARRAY_FILTER_USE_KEY) : $this;
+
         $qb = new QueryBuilder($table);
 
-        $result = $qb->update($this)
+        $result = $qb->update($final)
             ->where($pk, "=", $this->$pk)
             ->run();
 

@@ -45,10 +45,7 @@ class QueryBuilder
 
     function insert($data)
     {
-        $vars = array_filter(get_object_vars((object) $data), function ($value) {
-            return $value != null;
-        }, ARRAY_FILTER_USE_BOTH);
-
+        $vars = get_object_vars($data);
         $keys = array_keys($vars);
         $values = array_values($vars);
 
@@ -71,12 +68,10 @@ class QueryBuilder
 
     function update($data)
     {
-        $vars = array_filter(get_object_vars((object) $data), function ($value) {
-            return $value != null;
-        }, ARRAY_FILTER_USE_BOTH);
-
+        $vars = get_object_vars($data);
         $keys = array_keys($vars);
         $values = array_values($vars);
+
         $tokens = implode(", ", array_map(function ($key) {
             return "`" . $key . "`" . SPACE . "=" . SPACE . "?";
         }, $keys));
@@ -110,12 +105,12 @@ class QueryBuilder
                 array_push($this->values, $v);
             }
         } else if (is_string($value)) {
-            if ($operator == "=") {
-                $condition = "`$prop`" . SPACE . $operator . SPACE . "?";
-                array_push($this->values, $value);
-            } else {
+            if ($operator == "~") {
                 $condition = "`$prop`" . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "?";
                 array_push($this->values, "%" .  $value . "%");
+            } else {
+                $condition = "`$prop`" . SPACE . $operator . SPACE . "?";
+                array_push($this->values, $value);
             }
         } else if ($value == null) {
             $condition = "`$prop`" . SPACE . ($operator == false ? "IS NOT" : "IS") . SPACE . "NULL";
@@ -222,6 +217,7 @@ class QueryBuilder
     function fetch()
     {
         $queryString = $this->buildQuery();
+        // echo $queryString;
         $query = $this->data()->prepare($queryString);
         $query->execute($this->values);
         $this->reset();
@@ -231,6 +227,7 @@ class QueryBuilder
     function run()
     {
         $queryString = $this->buildQuery();
+        // echo $queryString;
         $query = $this->data()->prepare($queryString);
         $query->execute($this->values);
         $this->reset();

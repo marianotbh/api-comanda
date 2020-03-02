@@ -24,7 +24,7 @@ function endsWith($haystack, $needle)
 
 function kebabize($string)
 {
-    return implode("_", splitByUpperCase($string));
+    return strtolower(implode("_", splitByUpperCase($string)));
 }
 
 function plurify($string)

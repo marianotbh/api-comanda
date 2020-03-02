@@ -73,4 +73,20 @@ class ReviewService
 
         return $review->delete();
     }
+
+    function changeState($id)
+    {
+        /** @var Review */
+        $review = Review::find($id);
+
+        if ($review == null) throw new AppException("Review not found");
+
+        if ($review->removed_at == null) {
+            $review->removed_at = date('Y-m-d H:i:s');
+        } else {
+            $review->removed_at = null;
+        }
+
+        return $review->edit();
+    }
 }

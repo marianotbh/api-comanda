@@ -29,6 +29,8 @@ class TableService
 
     function create($model)
     {
+        if (Table::find($model->code) != null) throw new AppException("Table code already exists");
+
         $table = new Table();
 
         $table->code = $model->code;
@@ -79,5 +81,21 @@ class TableService
     function states()
     {
         return TableState::all()->fetch();
+    }
+
+    function changeState($code)
+    {
+        /** @var Table */
+        $table = Table::find($code);
+
+        if ($table == null) throw new AppException("Table not found");
+
+        if ($table->removed_at == null) {
+            $table->removed_at = date('Y-m-d H:i:s');
+        } else {
+            $table->removed_at = null;
+        }
+
+        return $table->edit();
     }
 }

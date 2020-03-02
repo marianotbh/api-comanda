@@ -1,14 +1,6 @@
 <?php
 
-$defaultValidators = array(
-    "required" => "validateRequired",
-    "min" => "validateMin",
-    "max" => "validateMax",
-    "length" => "validateLength",
-    "email" => "validateEmail",
-    "pattern" => "validatePattern",
-    "in" => "validateIn",
-);
+use App\Core\Exceptions\ValidatorException;
 
 function validateRequired($value)
 {
@@ -44,11 +36,11 @@ function validateMax($value, $param)
 function validateLength($value, $param)
 {
     if (is_numeric($value)) {
-        return $value == $param ? "The field must equal $param" : true;
+        return $value != $param ? "The field has to be a $param digits number" : true;
     } else if (is_string($value)) {
-        return strlen($value) == $param ? "The field must be longer than $param" : true;
+        return strlen($value) != $param ? "The field's length must be $param" : true;
     } else if (is_array($value)) {
-        return count($value) == $param ? "The field must contain $param item(s)" : true;
+        return count($value) != $param ? "The field must contain $param item(s)" : true;
     } else {
         return true;
     }
@@ -81,6 +73,28 @@ function validateIn($value, $param)
     return true;
 }
 
+function validateCollection($value, $param)
+{
+    if (!is_array($value)) {
+        return "The field is not a collection";
+    }
+
+    if (!is_callable($param)) {
+        return "Validation parameter is not a valid callback";
+    }
+
+    $errors = [];
+
+    foreach ($value as $key => $val) {
+        $result = $param($val, $key);
+        if ($result !== true) {
+            $errors[$key] = $result;
+        }
+    }
+
+    return count($errors) > 0 ? $errors : true;
+}
+
 function validate($rules, $obj)
 {
     $errors = [];
@@ -92,40 +106,58 @@ function validate($rules, $obj)
         "email" => "validateEmail",
         "pattern" => "validatePattern",
         "in" => "validateIn",
+        "collection" => "validateCollection"
     );
 
     foreach ($rules as $prop => $rule) {
         $value = isset($obj[$prop]) ? $obj[$prop] : null;
 
-        if (is_string($rule)) {
-            $validator = $defaultValidators[$rule];
-            $result = $validator($value);
-            if ($result !== true) {
-                if (isset($errors[$prop]) && is_array($errors[$prop])) {
-                    array_push($errors[$prop], $result);
-                } else {
-                    $errors[$prop] = array($result);
-                }
-            }
-        } else if (is_array($rule)) {
+        if (is_array($rule)) {
             foreach ($rule as $key => $param) {
                 if (is_int($key)) {
                     if (is_callable($param)) {
                         $result = $param($value);
                     } else {
                         $validator = $defaultValidators[$param];
-                        $result = $validator($value);
+                        if ($validator !== null) {
+                            $result = $validator($value);
+                        } else {
+                            throw new ValidatorException("Unknown requested validator: '$param'");
+                        }
                     }
                 } else {
                     $validator = $defaultValidators[$key];
-                    $result = $validator($value, $param);
+                    if ($validator !== null) {
+                        $result = $validator($value, $param);
+                    } else {
+                        throw new ValidatorException("Unknown requested validator: '$key'");
+                    }
                 }
                 if ($result !== true) {
                     if (isset($errors[$prop]) && is_array($errors[$prop])) {
-                        array_push($errors[$prop], $result);
+                        $errors[$prop][] = $result;
                     } else {
                         $errors[$prop] = array($result);
                     }
+                }
+            }
+        } else {
+            if (is_callable($rule)) {
+                $result = $rule($value);
+            } else if (is_string($rule)) {
+                $validator = $defaultValidators[$rule];
+                if ($validator !== null) {
+                    $result = $validator($value);
+                } else {
+                    throw new ValidatorException("Unknown requested validator: '$rule'");
+                }
+            }
+
+            if ($result !== true) {
+                if (isset($errors[$prop]) && is_array($errors[$prop])) {
+                    $errors[$prop][] = $result;
+                } else {
+                    $errors[$prop] = array($result);
                 }
             }
         }

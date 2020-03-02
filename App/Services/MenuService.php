@@ -79,4 +79,20 @@ class MenuService
 
         return $menu->delete();
     }
+
+    function changeState($id)
+    {
+        /** @var Menu */
+        $menu = Menu::find($id);
+
+        if ($menu == null) throw new AppException("Menu not found");
+
+        if ($menu->removed_at == null) {
+            $menu->removed_at = date('Y-m-d H:i:s');
+        } else {
+            $menu->removed_at = null;
+        }
+
+        return $menu->edit();
+    }
 }

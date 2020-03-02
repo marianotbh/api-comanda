@@ -99,6 +99,6 @@ class UserController
 
         $this->userService->changeState($id);
 
-        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "");
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "User state updated");
     }
 }

@@ -73,4 +73,13 @@ class MenuController
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Menu item deleted");
     }
+
+    function changeState(Request $req, Response $res, $args)
+    {
+        $id = (int) $args["id"];
+
+        $this->menuService->changeState($id);
+
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Menu state updated");
+    }
 }

@@ -27,7 +27,11 @@ class TableController
     function create(Request $req, Response $res, $args)
     {
         $model = Validator::check([
-            "code" => ["required", "length" => 5],
+            "code" => [
+                "required",
+                "length" => 5,
+                fn ($code) => strtolower(substr($code, 0, 1)) != "t" ? "Table code should start with 't'" : true
+            ],
             "capacity" => ["required", "min" => 1, "max" => 20],
         ], $req->getParsedBody());
 
@@ -73,5 +77,14 @@ class TableController
         $states = $this->tableService->states();
 
         return $res->withJson($states, StatusCode::HTTP_OK);
+    }
+
+    function changeState(Request $req, Response $res, $args)
+    {
+        $code = $args["code"];
+
+        $this->tableService->changeState($code);
+
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Table state updated");
     }
 }

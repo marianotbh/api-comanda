@@ -8,6 +8,8 @@ use Slim\Http\StatusCode;
 use App\Core\Validation\Validator;
 use App\Services\OrderService;
 
+use function App\Services\jsonize;
+
 class OrderController
 {
     private $orderService;
@@ -24,10 +26,17 @@ class OrderController
         $field = $req->getQueryParam("field") ?: "code";
         $order = $req->getQueryParam("order") ?: "ASC";
 
+        $filters = [];
+        if ($req->getQueryParam("from") !== null) $filters["createdAt"] = array(">=", $req->getQueryParam("from"));
+        if ($req->getQueryParam("to") !== null) $filters["createdAt"] = array("<=", $req->getQueryParam("to"));
+        if ($req->getQueryParam("state") !== null) $filters["state"] = array("=", $req->getQueryParam("state"));
+        if ($req->getQueryParam("user") !== null) $filters["user"] = array("=", $req->getQueryParam("user"));
+        if ($req->getQueryParam("table") !== null) $filters["table"] = array("=", $req->getQueryParam("table"));
+
         [
             "data" => $orders,
             "total" => $total
-        ] = $this->orderService->list($page, $length, $field, $order);
+        ] = $this->orderService->list($filters, $page, $length, $field, $order);
 
         return $res->withHeader("X-Total-Count", $total)
             ->withJson($orders, StatusCode::HTTP_OK);
@@ -38,7 +47,13 @@ class OrderController
         $model = Validator::check([
             "user" => "required",
             "table" => "required",
-            "detail" => "required"
+            "detail" => ["required", "min" => 1, "collection" => function ($item) {
+                $errors = [];
+                if (!isset($item["menu"]) || $item["menu"] === null) $errors[] = "Detail menu id is required";
+                if (!isset($item["amount"]) || $item["amount"] === null) $errors[] = "Detail amount is required";
+                if ($item["amount"] < 1) $errors[] = "Detail amount should be more than 0";
+                return count($errors) > 0 ? $errors : true;
+            }]
         ], $req->getParsedBody());
 
         $code = $this->orderService->create($model);
@@ -84,5 +99,14 @@ class OrderController
         $states = $this->orderService->states();
 
         return $res->withJson($states, StatusCode::HTTP_OK);
+    }
+
+    function changeState(Request $req, Response $res, $args)
+    {
+        $code = $args["code"];
+
+        $this->orderService->changeState($code);
+
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Order state updated");
     }
 }
