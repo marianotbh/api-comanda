@@ -28,4 +28,18 @@ class AuthService
     {
         return Role::all()->fetch();
     }
+
+    function changePassword($userId, $oldPassword, $newPassword, $newPasswordRepeat)
+    {
+        if ($newPassword != $newPasswordRepeat) throw new AppException("Passwords don't match");
+
+        /** @var User */
+        $user = User::find($userId);
+
+        if ($user == null) throw new AppException("User not found");
+        if (!password_verify($oldPassword, $user->password)) throw new AppException("Old password is incorrect");
+
+        $user->password = password_hash($newPassword, PASSWORD_DEFAULT);
+        $user->edit();
+    }
 }

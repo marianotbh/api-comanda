@@ -24,16 +24,10 @@ class UserService
 
     function create($model)
     {
-        $user = User::findByName($model->name);
-
-        if ($user != null) throw new AppException("Username already taken");
+        if (User::findByName($model->name) != null) throw new AppException("Username already taken");
         if ($model->password != $model->passwordRepeat) throw new AppException("Passwords don't match");
-
-        $roles = array_map(function (Role $role) {
-            return $role->id;
-        }, Role::all()->fetch());
-
-        if (!in_array($model->role, $roles)) throw new AppException("Invalid role");
+        if ($model->role == Role::ADMIN && User::findByRole(Role::ADMIN) != null) throw new AppException("There can only be one Admin user");
+        if (!in_array($model->role, array_map(fn (Role $role) => $role->id, Role::all()->fetch()))) throw new AppException("Invalid role");
 
         $user = new User();
 

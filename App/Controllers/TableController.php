@@ -5,8 +5,7 @@ namespace App\Controllers;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\StatusCode;
-
-use App\Core\Validator;
+use App\Core\Validation\Validator;
 use App\Services\TableService;
 
 class TableController
@@ -28,13 +27,13 @@ class TableController
     function create(Request $req, Response $res, $args)
     {
         $model = Validator::check([
-            "code" => ["required", "minLength:5", "maxLength:5"],
-            "capacity" => ["required"],
+            "code" => ["required", "length" => 5],
+            "capacity" => "required",
         ], $req->getParsedBody());
 
         $this->tableService->create($model);
 
-        return $res->withJson(["message" => "Table created"], StatusCode::HTTP_OK);
+        return $res->withJson(StatusCode::HTTP_CREATED, "Table created");
     }
 
     function read(Request $req, Response $res, $args)
@@ -51,13 +50,13 @@ class TableController
         $code = $args["code"];
 
         $model = Validator::check([
-            "capacity" => ["required"],
-            "state" => ["required"]
+            "capacity" => "required",
+            "state" => "required"
         ],  $req->getParsedBody());
 
         $this->tableService->update($code, $model);
 
-        return $res->withJson(["message" => "Table edited"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Table edited");
     }
 
     function delete(Request $req, Response $res, $args)
@@ -66,7 +65,7 @@ class TableController
 
         $this->tableService->delete($code);
 
-        return $res->withJson(["message" => "Table deleted"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Table deleted");
     }
 
     function getStates(Request $req, Response $res, $args)

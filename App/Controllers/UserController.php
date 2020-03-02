@@ -5,8 +5,7 @@ namespace App\Controllers;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\StatusCode;
-
-use App\Core\Validator;
+use App\Core\Validation\Validator;
 use App\Services\UserService;
 
 class UserController
@@ -37,18 +36,18 @@ class UserController
     function create(Request $req, Response $res, $args)
     {
         $model = Validator::check([
-            "name" => ["required", "minLength:5"],
-            "password" => ["required", "minLength:5"],
-            "passwordRepeat" => ["required", "minLength:5"],
-            "firstName" => ["required", "minLength:2"],
-            "lastName" => ["required", "minLength:2"],
-            "email" => ["required", "email"],
-            "role" => ["required"]
+            "name" => ["required", "min" => 5],
+            "password" => ["required", "min" => 5],
+            "passwordRepeat" => ["required", "min" => 5],
+            "firstName" => ["required", "min" => 2],
+            "lastName" => ["required", "min" => 2],
+            "email" => ["required", "min" => 2, "email"],
+            "role" => "required"
         ],  $req->getParsedBody());
 
         $this->userService->create($model);
 
-        return $res->withJson(["message" => "User created"], StatusCode::HTTP_CREATED);
+        return $res->withStatus(StatusCode::HTTP_CREATED,  "User created");
     }
 
     function read(Request $req, Response $res, $args)
@@ -65,15 +64,15 @@ class UserController
         $id = (int) $args["id"];
 
         $model = Validator::check([
-            "firstName" => ["required", "minLength:2"],
-            "lastName" => ["required", "minLength:2"],
+            "firstName" => ["required", "min" => 2],
+            "lastName" => ["required", "min" => 2],
             "email" => ["required", "email"],
-            "role" => ["required"]
+            "role" => "required"
         ],  $req->getParsedBody());
 
         $this->userService->update($id, $model);
 
-        return $res->withJson(["message" => "User edited"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "User edited");
     }
 
     function delete(Request $req, Response $res, $args)
@@ -82,6 +81,6 @@ class UserController
 
         $this->userService->delete($id);
 
-        return $res->withJson(["message" => "User deleted"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "User deleted");
     }
 }

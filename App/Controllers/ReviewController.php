@@ -5,8 +5,7 @@ namespace App\Controllers;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\StatusCode;
-
-use App\Core\Validator;
+use App\Core\Validation\Validator;
 use App\Services\ReviewService;
 
 class ReviewController
@@ -28,13 +27,13 @@ class ReviewController
     function create(Request $req, Response $res, $args)
     {
         $model = Validator::check([
-            "name" => ["required", "minLength:5"],
-            "description" => ["required", "minLength:5"]
+            "name" => ["required", "min" => 5],
+            "description" => ["required", "min" => 5]
         ], $req->getParsedBody());
 
         $this->reviewService->create($model);
 
-        return $res->withJson(["message" => "Review created"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_CREATED, "Review created");
     }
 
     function read(Request $req, Response $res, $args)
@@ -51,15 +50,15 @@ class ReviewController
         $id = (int) $args["id"];
 
         $model = Validator::check([
-            "firstName" => ["required", "minLength:2"],
-            "lastName" => ["required", "minLength:2"],
+            "firstName" => ["required", "min" => 2],
+            "lastName" => ["required", "min" => 2],
             "email" => ["required", "email"],
             "role" => ["required"]
         ],  $req->getParsedBody());
 
         $this->reviewService->update($id, $model);
 
-        return $res->withJson(["message" => "Review edited"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_OK, "Review edited");
     }
 
     function delete(Request $req, Response $res, $args)
@@ -68,6 +67,6 @@ class ReviewController
 
         $this->reviewService->delete($id);
 
-        return $res->withJson(["message" => "Review deleted"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_OK, "Review deleted");
     }
 }

@@ -5,8 +5,9 @@ namespace App\Middleware;
 use \Slim\Http\Request;
 use \Slim\Http\Response;
 use Slim\Http\StatusCode;
-use \Exception;
 use App\Core\Exceptions\AppException;
+use App\Core\Exceptions\ValidatorException;
+use \Exception;
 
 class ErrorHandlerMiddleware
 {
@@ -14,20 +15,23 @@ class ErrorHandlerMiddleware
     {
         try {
             return $next($req, $res);
+        } catch (ValidatorException $e) {
+            return $res->withJson([
+                "code" => $e->getCode(),
+                "errors" => $e->errors,
+                "message" => $e->getMessage(),
+            ], StatusCode::HTTP_BAD_REQUEST);
         } catch (AppException $e) {
             return $res->withJson([
                 "code" => $e->getCode(),
-                "message" => $e->getMessage(),
-                "stackTrace" => $e->getTraceAsString(),
-                "type" => get_class($e),
-            ], StatusCode::HTTP_BAD_REQUEST);
+                "message" => $e->getMessage()
+            ], StatusCode::HTTP_CONFLICT);
         } catch (Exception $e) {
             return $res->withJson([
                 "code" => $e->getCode(),
                 "message" => $e->getMessage(),
                 "stackTrace" => $e->getTraceAsString(),
-                "type" => get_class($e),
-            ]);
+            ], StatusCode::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

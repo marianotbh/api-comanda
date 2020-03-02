@@ -5,8 +5,7 @@ namespace App\Controllers;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\StatusCode;
-
-use App\Core\Validator;
+use App\Core\Validation\Validator;
 use App\Services\OrderService;
 
 class OrderController
@@ -44,7 +43,7 @@ class OrderController
 
         $this->orderService->create($model);
 
-        return $res->withJson(["message" => "Order created"], StatusCode::HTTP_OK);
+        return $res->withJson(StatusCode::HTTP_CREATED, "Order created");
     }
 
     function read(Request $req, Response $res, $args)
@@ -68,7 +67,7 @@ class OrderController
 
         $this->orderService->update($code, $model);
 
-        return $res->withJson(["message" => "Order edited"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Order edited");
     }
 
     function delete(Request $req, Response $res, $args)
@@ -77,7 +76,7 @@ class OrderController
 
         $this->orderService->delete($code);
 
-        return $res->withJson(["message" => "Order deleted"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Order deleted");
     }
 
     function getStates(Request $req, Response $res, $args)

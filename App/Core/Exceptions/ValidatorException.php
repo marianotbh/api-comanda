@@ -4,11 +4,14 @@ namespace App\Core\Exceptions;
 
 use \Exception;
 
-class ValidatorException extends AppException
+class ValidatorException extends Exception
 {
-    public function __construct($message, $code = 0, Exception $previous = null)
+    public $errors;
+
+    public function __construct($errors)
     {
-        parent::__construct($message, $code, $previous);
+        parent::__construct("Validation exception");
+        $this->errors = $errors;
     }
 
     public function __toString()

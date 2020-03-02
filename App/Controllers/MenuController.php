@@ -5,8 +5,7 @@ namespace App\Controllers;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\StatusCode;
-
-use App\Core\Validator;
+use App\Core\Validation\Validator;
 use App\Services\MenuService;
 
 class MenuController
@@ -28,8 +27,8 @@ class MenuController
     function create(Request $req, Response $res, $args)
     {
         $model = Validator::check([
-            "name" => ["required", "minLength:3"],
-            "description" => ["required", "minLength:5"],
+            "name" => ["required", "min" => 3],
+            "description" => ["required", "min" => 5],
             "price" => "required",
             "stock" => "required",
             "role" => "required"
@@ -37,7 +36,7 @@ class MenuController
 
         $this->menuService->create($model);
 
-        return $res->withJson(["message" => "Menu created"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_CREATED, "Menu item created");
     }
 
     function read(Request $req, Response $res, $args)
@@ -54,8 +53,8 @@ class MenuController
         $id = (int) $args["id"];
 
         $model = Validator::check([
-            "name" => ["required", "minLength:3"],
-            "description" => ["required", "minLength:5"],
+            "name" => ["required", "min" => 3],
+            "description" => ["required", "min" => 5],
             "price" => "required",
             "stock" => "required",
             "role" => "required"
@@ -63,7 +62,7 @@ class MenuController
 
         $this->menuService->update($id, $model);
 
-        return $res->withJson(["message" => "Menu edited"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Menu item edited");
     }
 
     function delete(Request $req, Response $res, $args)
@@ -72,6 +71,6 @@ class MenuController
 
         $this->menuService->delete($id);
 
-        return $res->withJson(["message" => "Menu deleted"], StatusCode::HTTP_OK);
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Menu item deleted");
     }
 }

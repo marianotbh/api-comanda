@@ -110,8 +110,13 @@ class QueryBuilder
                 array_push($this->values, $v);
             }
         } else if (is_string($value)) {
-            $condition = "`$prop`" . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "?";
-            array_push($this->values, "%" .  $value . "%");
+            if ($operator == "=") {
+                $condition = "`$prop`" . SPACE . $operator . SPACE . "?";
+                array_push($this->values, $value);
+            } else {
+                $condition = "`$prop`" . SPACE . ($operator == false ? "NOT LIKE" : "LIKE") . SPACE . "?";
+                array_push($this->values, "%" .  $value . "%");
+            }
         } else if ($value == null) {
             $condition = "`$prop`" . SPACE . ($operator == false ? "IS NOT" : "IS") . SPACE . "NULL";
         } else {
