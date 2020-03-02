@@ -53,7 +53,7 @@ class OrderService
         $order->user = $model->user;
         $order->table = $model->table;
 
-        $order->create();
+        if (!$order->create()) throw new AppException("Order could not be created, please try again later");
 
         foreach ($model->detail as $d) {
             $detail = new OrderDetail();

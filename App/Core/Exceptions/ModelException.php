@@ -4,7 +4,7 @@ namespace App\Core\Exceptions;
 
 use \Exception;
 
-class ModelException extends AppException
+class ModelException extends Exception
 {
     public function __construct($message, $code = 0, Exception $previous = null)
     {

@@ -38,7 +38,9 @@ class UserService
         $user->email = $model->email;
         $user->role = $model->role;
 
-        return $user->create();
+        if (!$user->create()) throw new AppException("User could not be created");
+
+        return User::findByName($user->name)->id;
     }
 
     /** @return User */
@@ -58,7 +60,7 @@ class UserService
         $user->email = $model->email;
         $user->first_name = $model->firstName;
         $user->last_name = $model->lastName;
-        $user->role = $model->role;
+        $user->role = $model->role ?? $user->role;
         $user->updated_at = date('Y-m-d H:i:s');
 
         return $user->edit();
@@ -73,5 +75,21 @@ class UserService
         if ($user == null) throw new AppException("User not found");
 
         return $user->delete();
+    }
+
+    function changeState(int $id)
+    {
+        /** @var User */
+        $user = User::find($id);
+
+        if ($user == null) throw new AppException("User not found");
+
+        if ($user->removed_at == null) {
+            $user->removed_at = date('Y-m-d H:i:s');
+        } else {
+            $user->removed_at = null;
+        }
+
+        return $user->edit();
     }
 }

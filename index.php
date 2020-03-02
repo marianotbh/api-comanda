@@ -59,6 +59,8 @@ $app->group('/users', function (App $app) {
     $app->put('/{id}[/]', UserController::class . ":update");
     $app->delete('/{id}[/]', UserController::class . ":delete")
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
+    $app->patch('/{id}/state[/]', UserController::class . ":changeState")
+        ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
 })->add(new AuthMiddleware());
 
 $app->group('/orders', function (App $app) {

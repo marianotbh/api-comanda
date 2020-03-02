@@ -110,8 +110,12 @@ function validate($rules, $obj)
         } else if (is_array($rule)) {
             foreach ($rule as $key => $param) {
                 if (is_int($key)) {
-                    $validator = $defaultValidators[$param];
-                    $result = $validator($value);
+                    if (is_callable($param)) {
+                        $result = $param($value);
+                    } else {
+                        $validator = $defaultValidators[$param];
+                        $result = $validator($value);
+                    }
                 } else {
                     $validator = $defaultValidators[$key];
                     $result = $validator($value, $param);

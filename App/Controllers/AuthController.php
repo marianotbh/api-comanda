@@ -50,7 +50,7 @@ class AuthController
     {
         $roles = $this->authService->roles();
 
-        return $res->withJson($roles, StatusCode::HTTP_OK, "Status ok");
+        return $res->withJson($roles, StatusCode::HTTP_OK);
     }
 
     public function changePassword(Request $req, Response $res, $args)

@@ -31,9 +31,9 @@ class ReviewController
             "description" => ["required", "min" => 5]
         ], $req->getParsedBody());
 
-        $this->reviewService->create($model);
+        $id = $this->reviewService->create($model);
 
-        return $res->withStatus(StatusCode::HTTP_CREATED, "Review created");
+        return $res->withJson(["id" => $id], StatusCode::HTTP_CREATED);
     }
 
     function read(Request $req, Response $res, $args)

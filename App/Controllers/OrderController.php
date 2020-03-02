@@ -41,9 +41,9 @@ class OrderController
             "detail" => "required"
         ], $req->getParsedBody());
 
-        $this->orderService->create($model);
+        $code = $this->orderService->create($model);
 
-        return $res->withJson(StatusCode::HTTP_CREATED, "Order created");
+        return $res->withJson(["code" => $code], StatusCode::HTTP_CREATED);
     }
 
     function read(Request $req, Response $res, $args)

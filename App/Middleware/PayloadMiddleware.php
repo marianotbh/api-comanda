@@ -15,10 +15,10 @@ class PayloadMiddleware
 {
     public function __invoke(Request $req, Response $res, $next)
     {
-        $header = $req->getHeader("Authorization");
+        $authorization = $req->getHeader("Authorization");
 
-        if (count($header) > 0) {
-            $token = extractToken($header[0]);
+        if (count($authorization) > 0) {
+            $token = extractToken($authorization[0]);
             $decoded = UtilsJWTHelper::decode($token);
             $req = $req->withAttribute("payload", $decoded->payload);
         }

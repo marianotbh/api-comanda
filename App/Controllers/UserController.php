@@ -2,11 +2,13 @@
 
 namespace App\Controllers;
 
+use App\Core\Exceptions\AppException;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\StatusCode;
 use App\Core\Validation\Validator;
 use App\Services\UserService;
+use App\Models\Role;
 
 class UserController
 {
@@ -45,9 +47,9 @@ class UserController
             "role" => "required"
         ],  $req->getParsedBody());
 
-        $this->userService->create($model);
+        $id = $this->userService->create($model);
 
-        return $res->withStatus(StatusCode::HTTP_CREATED,  "User created");
+        return $res->withJson(["id" => $id], StatusCode::HTTP_CREATED);
     }
 
     function read(Request $req, Response $res, $args)
@@ -61,14 +63,21 @@ class UserController
 
     function update(Request $req, Response $res, $args)
     {
+        $requester = $req->getAttribute("payload");
+
         $id = (int) $args["id"];
+
+        if ($requester->id != $id && $requester->role != Role::ADMIN && $requester->role != Role::MANAGER)
+            throw new AppException("You cannot edit other users' personal information");
 
         $model = Validator::check([
             "firstName" => ["required", "min" => 2],
             "lastName" => ["required", "min" => 2],
-            "email" => ["required", "email"],
-            "role" => "required"
+            "email" => ["required", "email"]
         ],  $req->getParsedBody());
+
+        if (isset($model->role) && ($requester->role != Role::ADMIN && $requester->role != Role::MANAGER))
+            throw new AppException("Insufficient permissions to edit the users' role");
 
         $this->userService->update($id, $model);
 
@@ -82,5 +91,14 @@ class UserController
         $this->userService->delete($id);
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "User deleted");
+    }
+
+    function changeState(Request $req, Response $res, $args)
+    {
+        $id = (int) $args["id"];
+
+        $this->userService->changeState($id);
+
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "");
     }
 }

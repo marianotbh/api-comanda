@@ -33,7 +33,9 @@ class ReviewService
         $review->name = $model->name;
         $review->description = $model->description;
 
-        return $review->create();
+        if (!$review->create()) throw new AppException("Review could not be processed");
+
+        return $review;
     }
 
     function update($id, $model)

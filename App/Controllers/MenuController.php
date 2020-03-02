@@ -30,13 +30,13 @@ class MenuController
             "name" => ["required", "min" => 3],
             "description" => ["required", "min" => 5],
             "price" => "required",
-            "stock" => "required",
+            "stock" => ["required", "min" => 1, "max" => 100],
             "role" => "required"
         ], $req->getParsedBody());
 
-        $this->menuService->create($model);
+        $id = $this->menuService->create($model);
 
-        return $res->withStatus(StatusCode::HTTP_CREATED, "Menu item created");
+        return $res->withJson(["id" => $id], StatusCode::HTTP_CREATED);
     }
 
     function read(Request $req, Response $res, $args)
@@ -56,7 +56,7 @@ class MenuController
             "name" => ["required", "min" => 3],
             "description" => ["required", "min" => 5],
             "price" => "required",
-            "stock" => "required",
+            "stock" => ["required", "min" => 1, "max" => 100],
             "role" => "required"
         ],  $req->getParsedBody());
 

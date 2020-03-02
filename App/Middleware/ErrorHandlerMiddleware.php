@@ -17,15 +17,11 @@ class ErrorHandlerMiddleware
             return $next($req, $res);
         } catch (ValidatorException $e) {
             return $res->withJson([
-                "code" => $e->getCode(),
                 "errors" => $e->errors,
                 "message" => $e->getMessage(),
             ], StatusCode::HTTP_BAD_REQUEST);
         } catch (AppException $e) {
-            return $res->withJson([
-                "code" => $e->getCode(),
-                "message" => $e->getMessage()
-            ], StatusCode::HTTP_CONFLICT);
+            return $res->withStatus(StatusCode::HTTP_BAD_REQUEST, $e->getMessage());
         } catch (Exception $e) {
             return $res->withJson([
                 "code" => $e->getCode(),

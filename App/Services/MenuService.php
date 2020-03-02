@@ -36,7 +36,9 @@ class MenuService
         $menu->stock = $model->stock;
         $menu->role = $model->role;
 
-        return $menu->create();
+        if (!$menu->create()) throw new AppException("Menu item could not be added, please try again later");
+
+        return Menu::findByName($menu->name)->id;
     }
 
     function update($id, $model)

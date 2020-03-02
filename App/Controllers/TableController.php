@@ -28,12 +28,12 @@ class TableController
     {
         $model = Validator::check([
             "code" => ["required", "length" => 5],
-            "capacity" => "required",
+            "capacity" => ["required", "min" => 1, "max" => 20],
         ], $req->getParsedBody());
 
-        $this->tableService->create($model);
+        $code = $this->tableService->create($model);
 
-        return $res->withJson(StatusCode::HTTP_CREATED, "Table created");
+        return $res->withJson(["code" => $code], StatusCode::HTTP_CREATED);
     }
 
     function read(Request $req, Response $res, $args)
@@ -50,7 +50,7 @@ class TableController
         $code = $args["code"];
 
         $model = Validator::check([
-            "capacity" => "required",
+            "capacity" => ["required", "min" => 1, "max" => 20],
             "state" => "required"
         ],  $req->getParsedBody());
 

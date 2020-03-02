@@ -7,6 +7,11 @@ use App\Core\Utils\JWTHelper;
 use App\Models\Role;
 use App\Models\User;
 
+function jsonize($obj)
+{
+    return json_decode(json_encode($obj));
+}
+
 class AuthService
 {
     function login($username, $password, $remember = false)
@@ -19,7 +24,7 @@ class AuthService
         $user->last_login_at = date('Y-m-d H:i:s');
         $user->edit();
 
-        $payload = json_decode(json_encode($user));
+        $payload = jsonize($user);
 
         return JWTHelper::encode($payload, $remember);
     }

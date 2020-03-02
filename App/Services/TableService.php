@@ -35,7 +35,9 @@ class TableService
         $table->capacity = $model->capacity;
         $table->state = 0; // Available
 
-        return $table->create();
+        if (!$table->create()) throw new AppException("Table could not be created");
+
+        return $table->code;
     }
 
     function update($code, $model)
