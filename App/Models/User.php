@@ -35,7 +35,7 @@ class User extends Model implements JsonSerializable
             if (strlen($from) != 0) $q->where("createdAt", "=", $from);
             if (strlen($to) != 0) $q->where("createdAt", "=", $to);
 
-            $stats["averageScore"] = $q->fetch()[0];
+            $stats["averageScore"] = count($codes) > 0 ? $q->fetch()[0] : 0;
             $stats["totalOrders"] = count($orders);
         } else if ($this->role == Role::KITCHEN || $this->role == Role::BAR || $this->role == Role::BREWERY) {
             $details = OrderDetail::where("user", "=", $this->id)->fetch();
@@ -49,7 +49,7 @@ class User extends Model implements JsonSerializable
             if (strlen($from) != 0) $q->where("createdAt", "=", $from);
             if (strlen($to) != 0) $q->where("createdAt", "=", $to);
 
-            $stats["averageScore"] = $q->fetch()[0];
+            $stats["averageScore"] = count($codes) > 0 ? $q->fetch()[0] : 0;
             $stats["totalOrders"] = count($details);
         }
 

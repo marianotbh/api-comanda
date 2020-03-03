@@ -16,22 +16,26 @@ class ExportController
         $this->exportService = new ExportService();
     }
 
-    function list(Request $req, Response $res, $args)
+    function xls(Request $req, Response $res, $args)
     {
-        $page = $req->getQueryParam("page", 1);
-        $length = $req->getQueryParam("length", 100);
-        $field = $req->getQueryParam("field", "id");
-        $order = $req->getQueryParam("order", "ASC");
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename-"./FileSystem/Reporting/Sales.xlsx"');
+        header('Cache-Control: max-age=0');
 
-        $filters = [];
-        if ($req->getQueryParam("resource") !== null) $filters["resource"] = array("~", $req->getQueryParam("resource"));
-        if ($req->getQueryParam("from") !== null) $filters["createdAt"] = array(">=", $req->getQueryParam("from"));
-        if ($req->getQueryParam("to") !== null) $filters["createdAt"] = array("<=", $req->getQueryParam("to"));
-        if ($req->getQueryParam("user") !== null) $filters["user"] = array("=", $req->getQueryParam("user"));
-        if ($req->getQueryParam("role") !== null) $filters["role"] = array("=", $req->getQueryParam("role"));
+        $file = $this->exportService->exportXLS();
 
-        $result = $this->exportService->export($filters, $page, $length, $field, $order);
+        $writer = \PHPExcel_IOFactory::createWriter($file, "Excel2007");
+        $writer->save("./App/FileSystem/Reporting/Sales.xlsx");
 
-        return $res->withHeader("Content-Type", "");
+        return $res->withStatus(StatusCode::HTTP_OK);
+    }
+
+    function pdf(Request $req, Response $res, $args)
+    {
+        $pdf = $this->exportService->exportPdf();
+
+        $pdf->Output("F", "./App/FileSystem/Reporting/Summary.pdf", true);
+
+        return $res->withStatus(StatusCode::HTTP_OK);
     }
 }

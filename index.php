@@ -2,6 +2,8 @@
 
 require './vendor/autoload.php';
 require_once './App/Core/Utils/Functions.php';
+require_once "./App/Core/Utils/FPDF/fpdf.php";
+require_once "./App/Core/Utils/PHPExcel/Classes/PHPExcel.php";
 
 date_default_timezone_set("America/Argentina/Buenos_Aires");
 
@@ -11,10 +13,12 @@ use Slim\Http\Response;
 
 /* Controllers */
 use App\Controllers\AuthController;
+use App\Controllers\ExportController;
 use App\Controllers\LogController;
 use App\Controllers\MenuController;
 use App\Controllers\OrderController;
 use App\Controllers\OrderDetailController;
+use App\Controllers\ReceiptController;
 use App\Controllers\ReviewController;
 use App\Controllers\TableController;
 use App\Controllers\UserController;
@@ -40,9 +44,6 @@ $app = new App($appConfig);
 $app->add(new PayloadMiddleware());
 $app->add(new ErrorHandlerMiddleware());
 $app->add(new CorsMiddleware());
-
-$user = User::find(34);
-var_dump($user->stats());
 
 $app->options('/{routes:.+}', function (Request $req, Response $res, $args) {
     return $res;
@@ -153,11 +154,24 @@ $app->group('/reviews', function () use ($app) {
     $app->delete('/{id}[/]', ReviewController::class . ":delete");
 });
 
-$app->group('/logs', function () use ($app) {
-    $app->get('[/]', LogController::class . ":list");
-});
+$app->group('/receipts', function () use ($app) {
+    $app->get('[/]', ReceiptController::class . ":list")
+        ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
+    $app->post('[/]', ReceiptController::class . ":create")
+        ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
+})->add(new AuthMiddleware());
 
-$app->get('/export', ExportController::class);
+$app->group('/logs', function () use ($app) {
+    $app->get('[/]', LogController::class . ":list")
+        ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
+})->add(new AuthMiddleware());
+
+$app->get('/export/xls[/]', ExportController::class . ":xls")
+    ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER))
+    ->add(new AuthMiddleware());
+$app->get('/export/pdf[/]', ExportController::class . ":pdf")
+    ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER))
+    ->add(new AuthMiddleware());
 
 $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function (Request $req, Response $res) {
     $handler = $this->notFoundHandler;
