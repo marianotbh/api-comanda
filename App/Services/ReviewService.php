@@ -30,10 +30,10 @@ class ReviewService
     function averages()
     {
         return [
-            "menu" => Review::avg("menu_score"),
-            "table" => Review::avg("table_score"),
-            "service" => Review::avg("service_score"),
-            "environment" => Review::avg("environment_score"),
+            "menu" => Review::avg("menu_score")->fetch()[0],
+            "table" => Review::avg("table_score")->fetch()[0],
+            "service" => Review::avg("service_score")->fetch()[0],
+            "environment" => Review::avg("environment_score")->fetch()[0],
         ];
     }
 

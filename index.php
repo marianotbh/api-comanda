@@ -28,6 +28,7 @@ use App\Middleware\RoleMiddleware;
 use App\Middleware\LogActionMiddleware;
 
 use App\Models\Role;
+use App\Models\User;
 
 $appConfig = require './config.php';
 
@@ -39,6 +40,9 @@ $app = new App($appConfig);
 $app->add(new PayloadMiddleware());
 $app->add(new ErrorHandlerMiddleware());
 $app->add(new CorsMiddleware());
+
+$user = User::find(34);
+var_dump($user->stats());
 
 $app->options('/{routes:.+}', function (Request $req, Response $res, $args) {
     return $res;
@@ -64,6 +68,8 @@ $app->group('/users', function () use ($app) {
     $app->delete('/{id}[/]', UserController::class . ":delete")
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
     $app->patch('/{id}/state[/]', UserController::class . ":changeState")
+        ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
+    $app->get('/{id}/statistics[/]', UserController::class . ":stats")
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
 })->add(new AuthMiddleware());
 
@@ -150,6 +156,8 @@ $app->group('/reviews', function () use ($app) {
 $app->group('/logs', function () use ($app) {
     $app->get('[/]', LogController::class . ":list");
 });
+
+$app->get('/export', ExportController::class);
 
 $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function (Request $req, Response $res) {
     $handler = $this->notFoundHandler;

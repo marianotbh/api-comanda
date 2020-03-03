@@ -106,4 +106,13 @@ class UserController
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "User state updated");
     }
+
+    function stats(Request $req, Response $res, $args)
+    {
+        $id = (int) $args["id"];
+
+        $stats = $this->userService->stats($id);
+
+        return $res->withJson($stats, StatusCode::HTTP_OK);
+    }
 }

@@ -43,5 +43,7 @@ class ImageHelper
         }
 
         $file->moveTo($dir . DIRECTORY_SEPARATOR . $name);
+
+        $image = new Imagick();
     }
 }

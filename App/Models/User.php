@@ -19,6 +19,43 @@ class User extends Model implements JsonSerializable
     public $last_login_at;
     public $role;
 
+    function stats($from = "", $to = "")
+    {
+        $stats = [];
+
+        if ($this->role == Role::FLOOR) {
+            $orders = Order::where("user", "=", $this->id)->fetch();
+
+            $codes = array_map(function (Order $order) {
+                return $order->code;
+            }, $orders);
+
+            $q = Review::avg("service_score")->where("order", true, $codes);
+
+            if (strlen($from) != 0) $q->where("createdAt", "=", $from);
+            if (strlen($to) != 0) $q->where("createdAt", "=", $to);
+
+            $stats["averageScore"] = $q->fetch()[0];
+            $stats["totalOrders"] = count($orders);
+        } else if ($this->role == Role::KITCHEN || $this->role == Role::BAR || $this->role == Role::BREWERY) {
+            $details = OrderDetail::where("user", "=", $this->id)->fetch();
+
+            $codes = array_map(function (OrderDetail $detail) {
+                return $detail->order;
+            }, $details);
+
+            $q = Review::avg("menu_score")->where("order", true, $codes);
+
+            if (strlen($from) != 0) $q->where("createdAt", "=", $from);
+            if (strlen($to) != 0) $q->where("createdAt", "=", $to);
+
+            $stats["averageScore"] = $q->fetch()[0];
+            $stats["totalOrders"] = count($details);
+        }
+
+        return $stats;
+    }
+
     function jsonSerialize()
     {
         return [

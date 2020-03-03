@@ -52,7 +52,13 @@ class UserService
     /** @return User */
     function read($name)
     {
-        return User::findByName($name);
+        $user = User::findByName($name);
+
+        if ($user == null || $user->removed_at != null) {
+            return null;
+        }
+
+        return $user;
     }
 
     /** @return bool */
@@ -61,7 +67,7 @@ class UserService
         /** @var User */
         $user = User::find($id);
 
-        if ($user == null) throw new AppException("User not found");
+        if ($user == null || $user->removed_at != null) throw new AppException("User not found");
 
         $user->email = $model->email;
         $user->first_name = $model->firstName;
@@ -82,7 +88,7 @@ class UserService
         /** @var User */
         $user = User::findById($id);
 
-        if ($user == null) throw new AppException("User not found");
+        if ($user == null || $user->removed_at != null) throw new AppException("User not found");
 
         return $user->delete();
     }
@@ -101,5 +107,15 @@ class UserService
         }
 
         return $user->edit();
+    }
+
+    function stats(int $id)
+    {
+        /** @var User */
+        $user = User::find($id);
+
+        if ($user == null || $user->removed_at != null) throw new AppException("User not found");
+
+        return $user->stats();
     }
 }

@@ -24,7 +24,7 @@ class Review extends Model implements JsonSerializable
     static function avg($col)
     {
         $reviews = new QueryBuilder("reviews");
-        return $reviews->select("AVG(`$col`)")->setFetchMode(\PDO::FETCH_COLUMN, null)->fetch()[0];
+        return $reviews->select("AVG(`$col`)")->setFetchMode(\PDO::FETCH_COLUMN, null);
     }
 
     function jsonSerialize()
