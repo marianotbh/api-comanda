@@ -8,8 +8,6 @@ use Slim\Http\StatusCode;
 use App\Core\Validation\Validator;
 use App\Services\OrderService;
 
-use function App\Services\jsonize;
-
 class OrderController
 {
     private $orderService;
@@ -44,6 +42,9 @@ class OrderController
 
     function create(Request $req, Response $res, $args)
     {
+        $body = $req->getParsedBody();
+        $files = $req->getUploadedFiles();
+
         $model = Validator::check([
             "user" => "required",
             "table" => "required",
@@ -54,9 +55,9 @@ class OrderController
                 if ($item["amount"] < 1) $errors[] = "Detail amount should be more than 0";
                 return count($errors) > 0 ? $errors : true;
             }]
-        ], $req->getParsedBody());
+        ], $body);
 
-        $code = $this->orderService->create($model);
+        $code = $this->orderService->create($model, isset($files["image"]) ? $files["image"] : null);
 
         return $res->withJson(["code" => $code], StatusCode::HTTP_CREATED);
     }
@@ -73,14 +74,16 @@ class OrderController
     function update(Request $req, Response $res, $args)
     {
         $code = $args["code"];
+        $body = $req->getParsedBody();
+        $files = $req->getUploadedFiles();
 
         $model = Validator::check([
             "user" => "required",
             "table" => "required",
-            "detail" => "required"
-        ],  $req->getParsedBody());
+            "state" => "required"
+        ],  $body);
 
-        $this->orderService->update($code, $model);
+        $this->orderService->update($code, $model, isset($files["image"]) ? $files["image"] : null);
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Order edited");
     }
@@ -108,5 +111,14 @@ class OrderController
         $this->orderService->changeState($code);
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Order state updated");
+    }
+
+    function serve(Request $req, Response $res, $args)
+    {
+        $code = $args["code"];
+
+        $this->orderService->serve($code);
+
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Order served");
     }
 }

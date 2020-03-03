@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use \App\Core\Data\Model;
+use App\Core\Data\QueryBuilder;
 use JsonSerializable;
 
 class Review extends Model implements JsonSerializable
@@ -12,9 +13,19 @@ class Review extends Model implements JsonSerializable
     public $name;
     public $email;
     public $description;
+    public $menu_score;
+    public $table_score;
+    public $service_score;
+    public $environment_score;
     public $created_at;
     public $updated_at;
     public $removed_at;
+
+    static function avg($col)
+    {
+        $reviews = new QueryBuilder("reviews");
+        return $reviews->select("AVG(`$col`)")->setFetchMode(\PDO::FETCH_COLUMN, null)->fetch()[0];
+    }
 
     function jsonSerialize()
     {

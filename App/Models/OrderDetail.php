@@ -13,6 +13,7 @@ class OrderDetail extends Model implements JsonSerializable
     public $menu;
     public $amount;
     public $state;
+    public $estimated_at;
     public $created_at;
     public $updated_at;
     public $removed_at;
@@ -21,10 +22,12 @@ class OrderDetail extends Model implements JsonSerializable
     {
         return [
             "id" => $this->id,
+            "order" => $this->order,
             "user" => $this->user,
             "menu" => $this->menu,
             "amount" => $this->amount,
             "state" => $this->state,
+            "estimatedAt" => $this->estimated_at,
             "createdAt" => $this->created_at,
             "updatedAt" => $this->updated_at,
             "removedAt" => $this->removed_at,

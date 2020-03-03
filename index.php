@@ -13,6 +13,7 @@ use Slim\Http\Response;
 use App\Controllers\AuthController;
 use App\Controllers\MenuController;
 use App\Controllers\OrderController;
+use App\Controllers\OrderDetailController;
 use App\Controllers\ReviewController;
 use App\Controllers\TableController;
 use App\Controllers\UserController;
@@ -41,7 +42,7 @@ $app->options('/{routes:.+}', function (Request $req, Response $res, $args) {
     return $res;
 });
 
-$app->group('/auth', function (App $app) {
+$app->group('/auth', function () use ($app) {
     $app->post('/login[/]', AuthController::class . ":login");
     $app->get('/status[/]', AuthController::class . ":status")
         ->add(new AuthMiddleware());
@@ -51,7 +52,7 @@ $app->group('/auth', function (App $app) {
         ->add(new AuthMiddleware());
 });
 
-$app->group('/users', function (App $app) {
+$app->group('/users', function () use ($app) {
     $app->get('[/]', UserController::class . ":list");
     $app->get('/{name}[/]', UserController::class . ":read");
     $app->post('[/]', UserController::class . ":create")
@@ -63,7 +64,7 @@ $app->group('/users', function (App $app) {
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
 })->add(new AuthMiddleware());
 
-$app->group('/orders', function (App $app) {
+$app->group('/orders', function () use ($app) {
     $app->get('/states[/]', OrderController::class . ":getStates");
     $app->get('[/]', OrderController::class . ":list");
     $app->get('/{code}[/]', OrderController::class . ":read");
@@ -75,9 +76,23 @@ $app->group('/orders', function (App $app) {
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
     $app->patch('/{code}/state[/]', OrderController::class . ":changeState")
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
+
+    $app->group('/{order}/details', function () use ($app) {
+        $app->get('/states[/]', OrderController::class . ":getStates");
+        $app->get('[/]', OrderDetailController::class . ":list");
+        $app->get('/{id}[/]', OrderDetailController::class . ":read");
+        $app->post('[/]', OrderDetailController::class . ":create")
+            ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
+        $app->put('/{id}[/]', OrderDetailController::class . ":update")
+            ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
+        $app->delete('/{id}[/]', OrderDetailController::class . ":delete")
+            ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
+        $app->patch('/{id}/take[/]', OrderDetailController::class . ":take");
+        $app->patch('/{id}/complete[/]', OrderDetailController::class . ":complete");
+    });
 })->add(new AuthMiddleware());
 
-$app->group('/tables', function (App $app) {
+$app->group('/tables', function () use ($app) {
     $app->get('/states[/]', TableController::class . ":getStates");
     $app->get('[/]', TableController::class . ":list");
     $app->get('/{code}[/]', TableController::class . ":read");
@@ -91,7 +106,7 @@ $app->group('/tables', function (App $app) {
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
 })->add(new AuthMiddleware());
 
-$app->group('/menu', function (App $app) {
+$app->group('/menu', function () use ($app) {
     $app->get('[/]', MenuController::class . ":list");
     $app->get('/{id}[/]', MenuController::class . ":read");
     $app->post('[/]', MenuController::class . ":create")
@@ -104,10 +119,11 @@ $app->group('/menu', function (App $app) {
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::KITCHEN])));
 })->add(new AuthMiddleware());
 
-$app->group('/reviews', function (App $app) {
+$app->group('/reviews', function () use ($app) {
     $app->get('[/]', ReviewController::class . ":list");
+    $app->get('/averages[/]', ReviewController::class . ":getAverages");
     $app->get('/{id}[/]', ReviewController::class . ":read");
-    $app->post('[/]', ReviewController::class . ":create");
+    $app->post('/{order}[/]', ReviewController::class . ":create");
     $app->put('/{id}[/]', ReviewController::class . ":update");
     $app->delete('/{id}[/]', ReviewController::class . ":delete");
 });

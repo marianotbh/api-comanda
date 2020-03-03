@@ -217,7 +217,6 @@ class QueryBuilder
     function fetch()
     {
         $queryString = $this->buildQuery();
-        // echo $queryString;
         $query = $this->data()->prepare($queryString);
         $query->execute($this->values);
         $this->reset();
@@ -227,7 +226,6 @@ class QueryBuilder
     function run()
     {
         $queryString = $this->buildQuery();
-        // echo $queryString;
         $query = $this->data()->prepare($queryString);
         $query->execute($this->values);
         $this->reset();

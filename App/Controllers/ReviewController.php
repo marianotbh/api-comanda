@@ -19,19 +19,35 @@ class ReviewController
 
     function list(Request $req, Response $res, $args)
     {
-        $reviews = $this->reviewService->list();
+        $page = $req->getQueryParam("page") ?: 1;
+        $length = $req->getQueryParam("length") ?: 100;
+        $field = $req->getQueryParam("field") ?: "code";
+        $order = $req->getQueryParam("order") ?: "ASC";
 
-        return $res->withJson($reviews, StatusCode::HTTP_OK);
+        [
+            "data" => $reviews,
+            "total" => $total
+        ] = $this->reviewService->list($page, $length, $field, $order);
+
+        return $res->withHeader("X-Total-Count", $total)
+            ->withJson($reviews, StatusCode::HTTP_OK);
     }
 
     function create(Request $req, Response $res, $args)
     {
+        $order = $args["order"];
+
         $model = Validator::check([
-            "name" => ["required", "min" => 5],
-            "description" => ["required", "min" => 5]
+            "name" => ["required", "min" => 1, "max" => 45],
+            "description" => ["required", "min" => 1, "max" => 66],
+            "email" => ["required", "email", "min" => 1, "max" => 45],
+            "menuScore" => ["required", "min" => 1, "max" => 10],
+            "tableScore" => ["required", "min" => 1, "max" => 10],
+            "serviceScore" => ["required", "min" => 1, "max" => 10],
+            "environmentScore" => ["required", "min" => 1, "max" => 10]
         ], $req->getParsedBody());
 
-        $id = $this->reviewService->create($model);
+        $id = $this->reviewService->create($order, $model);
 
         return $res->withJson(["id" => $id], StatusCode::HTTP_CREATED);
     }
@@ -50,10 +66,13 @@ class ReviewController
         $id = (int) $args["id"];
 
         $model = Validator::check([
-            "firstName" => ["required", "min" => 2],
-            "lastName" => ["required", "min" => 2],
-            "email" => ["required", "email"],
-            "role" => ["required"]
+            "name" => ["required", "min" => 1, "max" => 45],
+            "description" => ["required", "min" => 1, "max" => 66],
+            "email" => ["required", "email", "min" => 1, "max" => 45],
+            "menuScore" => ["required", "min" => 1, "max" => 10],
+            "tableScore" => ["required", "min" => 1, "max" => 10],
+            "serviceScore" => ["required", "min" => 1, "max" => 10],
+            "environmentScore" => ["required", "min" => 1, "max" => 10]
         ],  $req->getParsedBody());
 
         $this->reviewService->update($id, $model);
@@ -74,8 +93,15 @@ class ReviewController
     {
         $id = (int) $args["id"];
 
-        $this->menuService->changeState($id);
+        $this->reviewService->changeState($id);
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Menu state updated");
+    }
+
+    function getAverages(Request $req, Response $res, $args)
+    {
+        $averages = $this->reviewService->averages();
+
+        return $res->withJson($averages, StatusCode::HTTP_OK);
     }
 }

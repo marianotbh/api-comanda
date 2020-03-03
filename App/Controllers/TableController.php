@@ -26,6 +26,9 @@ class TableController
 
     function create(Request $req, Response $res, $args)
     {
+        $body = $req->getParsedBody();
+        $files = $req->getUploadedFiles();
+
         $model = Validator::check([
             "code" => [
                 "required",
@@ -33,9 +36,9 @@ class TableController
                 fn ($code) => strtolower(substr($code, 0, 1)) != "t" ? "Table code should start with 't'" : true
             ],
             "capacity" => ["required", "min" => 1, "max" => 20],
-        ], $req->getParsedBody());
+        ], $body);
 
-        $code = $this->tableService->create($model);
+        $code = $this->tableService->create($model, isset($files["image"]) ? $files["image"] : null);
 
         return $res->withJson(["code" => $code], StatusCode::HTTP_CREATED);
     }
@@ -52,13 +55,15 @@ class TableController
     function update(Request $req, Response $res, $args)
     {
         $code = $args["code"];
+        $body = $req->getParsedBody();
+        $files = $req->getUploadedFiles();
 
         $model = Validator::check([
             "capacity" => ["required", "min" => 1, "max" => 20],
             "state" => "required"
-        ],  $req->getParsedBody());
+        ],  $body);
 
-        $this->tableService->update($code, $model);
+        $this->tableService->update($code, $model, isset($files["image"]) ? $files["image"] : null);
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Table edited");
     }

@@ -26,15 +26,18 @@ class MenuController
 
     function create(Request $req, Response $res, $args)
     {
+        $body = $req->getParsedBody();
+        $files = $req->getUploadedFiles();
+
         $model = Validator::check([
             "name" => ["required", "min" => 3],
             "description" => ["required", "min" => 5],
             "price" => "required",
             "stock" => ["required", "min" => 1, "max" => 100],
             "role" => "required"
-        ], $req->getParsedBody());
+        ], $body);
 
-        $id = $this->menuService->create($model);
+        $id = $this->menuService->create($model, isset($files["image"]) ? $files["image"] : null);
 
         return $res->withJson(["id" => $id], StatusCode::HTTP_CREATED);
     }
@@ -51,6 +54,8 @@ class MenuController
     function update(Request $req, Response $res, $args)
     {
         $id = (int) $args["id"];
+        $body = $req->getParsedBody();
+        $files = $req->getUploadedFiles();
 
         $model = Validator::check([
             "name" => ["required", "min" => 3],
@@ -58,9 +63,9 @@ class MenuController
             "price" => "required",
             "stock" => ["required", "min" => 1, "max" => 100],
             "role" => "required"
-        ],  $req->getParsedBody());
+        ], $body);
 
-        $this->menuService->update($id, $model);
+        $this->menuService->update($id, $model, isset($files["image"]) ? $files["image"] : null);
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Menu item edited");
     }

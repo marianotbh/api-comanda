@@ -2,26 +2,44 @@
 
 namespace App\Services;
 
+use App\Core\Data\QueryBuilder;
 use App\Models\Review;
 use App\Core\Exceptions\AppException;
 
+use function App\Core\Utils\kebabize;
+
 class ReviewService
 {
-    function list()
+    function list($page = 1, $length = 100, $field = "createdAt", $order = "ASC")
     {
         /** @var Review[] */
         $reviews = Review::whereRemoved_at(null)
-            ->orderBy("name")
-            ->take(10)
+            ->orderBy(kebabize($field), $order)
+            ->skip(($page - 1) * $length)
+            ->take($length)
             ->fetch();
 
         return $reviews;
     }
 
+    function averages()
+    {
+        return [
+            "menu" => Review::avg("menu_score"),
+            "table" => Review::avg("table_score"),
+            "service" => Review::avg("service_score"),
+            "environment" => Review::avg("environment_score"),
+        ];
+    }
+
     function read($id)
     {
         /** @var Review */
-        $review = Review::findById($id);
+        $review = Review::find($id);
+
+        if ($review == null || $review->removed_at != null) {
+            return null;
+        }
 
         return $review;
     }
@@ -32,6 +50,11 @@ class ReviewService
 
         $review->name = $model->name;
         $review->description = $model->description;
+        $review->email = $model->email;
+        $review->menu_score = $model->menuScore;
+        $review->table_score = $model->tableScore;
+        $review->service_score = $model->serviceScore;
+        $review->environment_score = $model->environmentScore;
 
         if (!$review->create()) throw new AppException("Review could not be processed");
 
@@ -41,25 +64,18 @@ class ReviewService
     function update($id, $model)
     {
         /** @var Review */
-        $review = Review::findById($id);
+        $review = Review::find($id);
 
-        if ($review == null) throw new AppException("Review not found");
+        if ($review == null || $review->removed_at != null) throw new AppException("Review not found");
 
         $review->name = $model->name;
         $review->description = $model->description;
+        $review->email = $model->email;
+        $review->menu_score = $model->menuScore;
+        $review->table_score = $model->tableScore;
+        $review->service_score = $model->serviceScore;
+        $review->environment_score = $model->environmentScore;
         $review->updated_at = date('Y-m-d H:i:s');
-
-        return $review->edit();
-    }
-
-    function remove($id)
-    {
-        /** @var Review */
-        $review = Review::findById($id);
-
-        if ($review == null) throw new AppException("Review not found");
-
-        $review->removed_at = date('Y-m-d H:i:s');
 
         return $review->edit();
     }
@@ -67,9 +83,9 @@ class ReviewService
     function delete($id)
     {
         /** @var Review */
-        $review = Review::findById($id);
+        $review = Review::find($id);
 
-        if ($review == null) throw new AppException("Review not found");
+        if ($review == null || $review->removed_at != null) throw new AppException("Review not found");
 
         return $review->delete();
     }

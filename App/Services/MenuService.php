@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Menu;
 use App\Core\Exceptions\AppException;
+use Slim\Http\UploadedFile;
 
 class MenuService
 {
@@ -23,10 +24,14 @@ class MenuService
         /** @var Menu */
         $menu = Menu::findById($id);
 
+        if ($menu == null || $menu->removed_at != null) {
+            return null;
+        }
+
         return $menu;
     }
 
-    function create($model)
+    function create($model, UploadedFile $image = null)
     {
         $menu = new Menu();
 
@@ -38,15 +43,19 @@ class MenuService
 
         if (!$menu->create()) throw new AppException("Menu item could not be added, please try again later");
 
+        if ($image != null && ImageHelper::validate($image)) {
+            ImageHelper::saveTo("Menu", $image, "$menu->name.png");
+        }
+
         return Menu::findByName($menu->name)->id;
     }
 
-    function update($id, $model)
+    function update($id, $model, UploadedFile $image = null)
     {
         /** @var Menu */
         $menu = Menu::findById($id);
 
-        if ($menu == null) throw new AppException("Menu not found");
+        if ($menu == null || $menu->removed_at != null) throw new AppException("Menu not found");
 
         $menu->name = $model->name;
         $menu->description = $model->description;
@@ -55,27 +64,18 @@ class MenuService
         $menu->role = $model->role;
         $menu->updated_at = date('Y-m-d H:i:s');
 
-        return $menu->edit();
-    }
-
-    function remove($id)
-    {
-        /** @var Menu */
-        $menu = Menu::findById($id);
-
-        if ($menu == null) throw new AppException("Menu not found");
-
-        $menu->removed_at = date('Y-m-d H:i:s');
+        if ($image != null && ImageHelper::validate($image)) {
+            ImageHelper::saveTo("Menu", $image, "$menu->name.png", true);
+        }
 
         return $menu->edit();
     }
-
     function delete($id)
     {
         /** @var Menu */
         $menu = Menu::findById($id);
 
-        if ($menu == null) throw new AppException("Menu not found");
+        if ($menu == null || $menu->removed_at != null) throw new AppException("Menu not found");
 
         return $menu->delete();
     }

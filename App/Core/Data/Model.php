@@ -47,7 +47,7 @@ abstract class Model
             if ($action == "find" && $words[1] == "by") {
                 $value = $args[0] ?? null;
                 $prop = $words[2] ?? "id";
-                return self::find($prop, $value);
+                return self::find([$prop => $value]);
             } else if ($action == "where") {
                 $prop = $words[1];
                 $operator = isset($words[2]) && $words[2] == "not" ? false : true;
@@ -64,24 +64,27 @@ abstract class Model
         }
     }
 
-    static function find($prop, $value = null)
+    static function find($by)
     {
         $table = self::get_table();
 
-        if ($value == null) {
-            $value = $prop;
-            $prop = self::get_pk();
-        }
-
         $qb = new QueryBuilder($table);
 
-        $result = $qb->select()
-            ->where($prop, "=", $value)
+        $qb->select()
             ->take(1)
-            ->setFetchMode(\PDO::FETCH_CLASS, get_called_class())
-            ->fetch() ?? null;
+            ->setFetchMode(\PDO::FETCH_CLASS, get_called_class());
 
-        return $result != null ? $result[0] : null;
+        if (is_array($by)) {
+            foreach ($by as $key => $val) {
+                $qb->where($key, "=", $val);
+            }
+        } else {
+            $qb->where(self::get_pk(), "=", $by);
+        }
+
+        $result = $qb->fetch();
+
+        return ($result != null && count($result) == 1) ? $result[0] : null;
     }
 
     static function all()

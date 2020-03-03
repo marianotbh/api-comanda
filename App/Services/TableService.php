@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Table;
 use App\Models\TableState;
 use App\Core\Exceptions\AppException;
+use Slim\Http\UploadedFile;
 
 class TableService
 {
@@ -27,7 +28,7 @@ class TableService
         return $table;
     }
 
-    function create($model)
+    function create($model, UploadedFile $image = null)
     {
         if (Table::find($model->code) != null) throw new AppException("Table code already exists");
 
@@ -39,10 +40,14 @@ class TableService
 
         if (!$table->create()) throw new AppException("Table could not be created");
 
+        if ($image != null && ImageHelper::validate($image)) {
+            ImageHelper::saveTo("Tables", $image, "$table->code.png");
+        }
+
         return $table->code;
     }
 
-    function update($code, $model)
+    function update($code, $model, UploadedFile $image = null)
     {
         /** @var Table */
         $table = Table::findByCode($code);
@@ -53,19 +58,11 @@ class TableService
         $table->state = $model->state;
         $table->updated_at = date('Y-m-d H:i:s');
 
-        return $table->edit();
-    }
+        $table->edit();
 
-    function remove($code)
-    {
-        /** @var Table */
-        $table = Table::findByCode($code);
-
-        if ($table == null) throw new AppException("Table not found");
-
-        $table->removed_at = date('Y-m-d H:i:s');
-
-        return $table->edit();
+        if ($image != null && ImageHelper::validate($image)) {
+            ImageHelper::saveTo("Tables", $image, "$table->code.png");
+        }
     }
 
     function delete($code)
@@ -80,7 +77,7 @@ class TableService
 
     function states()
     {
-        return TableState::all()->fetch();
+        return TableState::all()->orderBy("id", "ASC")->fetch();
     }
 
     function changeState($code)

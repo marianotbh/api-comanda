@@ -10,6 +10,7 @@ use App\Models\Menu;
 use App\Models\OrderDetail;
 use App\Models\Table;
 use App\Models\TableState;
+use Slim\Http\UploadedFile;
 
 use function App\Core\Utils\kebabize;
 
@@ -27,10 +28,6 @@ class OrderService
             $orders->where(kebabize($key), $operator, $value);
         }
 
-        // foreach ($orders as $order) {
-        //     $order->detail = OrderDetail::where("order", "=", $order->code)->fetch();
-        // }
-
         return [
             "data" => $orders->fetch(),
             "total" => Order::count()
@@ -43,13 +40,13 @@ class OrderService
         $order = Order::findByCode($code);
 
         if ($order != null) {
-            $order->detail = OrderDetail::whereOrder($order->code)->fetch();
+            $order->detail = $order->details();
         }
 
         return $order;
     }
 
-    function create($model)
+    function create($model, UploadedFile $image = null)
     {
         $order = new Order();
 
@@ -58,7 +55,7 @@ class OrderService
         /** @var Table */
         $table = Table::find($model->table);
 
-        if ($table == null) throw new AppException("Table not found");
+        if ($table == null || $table->removed_at != null) throw new AppException("Table not found");
         if ($table->state != TableState::AVAILABLE) throw new AppException("Table is unavailable");
 
         $order->code = $code;
@@ -80,7 +77,7 @@ class OrderService
             $detail->order = $code;
             $detail->menu = $d->menu;
             $detail->amount = $d->amount;
-            $detail->state = 0;
+            $detail->state = OrderState::PENDING;
 
             if (!$detail->create()) throw new AppException("Could not add detail to order $code, please try again");
 
@@ -91,21 +88,27 @@ class OrderService
         $table->state = TableState::WAITING;
         $table->edit();
 
+        if ($image != null && ImageHelper::validate($image)) {
+            ImageHelper::saveTo("Orders", $image, "$order->code.png");
+        }
+
         return $code;
     }
 
-    function update($code, $model)
+    /** @return void */
+    function update($code, $model, UploadedFile $image = null)
     {
         /** @var Order */
-        $order = Order::findByCode($code);
+        $order = Order::find($code);
 
-        if ($order == null) throw new AppException("Order not found");
+        if ($order == null || $order->removed_at != null) throw new AppException("Order not found");
 
-        /** @var Table */
-        $table = Table::find($model->table);
-
-        if ($table == null) throw new AppException("Table not found");
-        if ($table->state != TableState::AVAILABLE) throw new AppException("Table is unavailable");
+        if ($model->table != $order->table) {
+            /** @var Table */
+            $table = Table::find($model->table);
+            if ($table == null || $table->removed_at != null) throw new AppException("Table not found");
+            if ($table->state != TableState::AVAILABLE) throw new AppException("Table is unavailable");
+        }
 
         $order->user = $model->user;
         $order->table = $model->table;
@@ -114,63 +117,29 @@ class OrderService
 
         if (!$order->edit()) throw new AppException("Could not update the order, please try again");
 
-        foreach ($model->detail as $d) {
-
-            $detail = OrderDetail::find($d->id);
-
-
-            if ($detail != null) {
-                /** @var Menu */
-                $menu = Menu::find($d->menu);
-
-                if ($menu == null) throw new AppException("Menu item not found");
-                if ($menu->stock < $d->amount) throw new AppException("There is not enough " . $menu->name . " for this order");
-
-                $detail->menu = $d->menu;
-                $detail->amount = $d->amount;
-                $detail->state = 0;
-
-                $detail->edit();
-            } else {
-                $detail = new OrderDetail();
-
-                $detail->order = $code;
-                $detail->menu = $d->menu;
-                $detail->amount = $d->amount;
-                $detail->state = 0;
-
-                $detail->create();
-            }
+        if ($image != null && ImageHelper::validate($image)) {
+            ImageHelper::saveTo("Orders", $image, "$order->code.png", true);
         }
-
-        return $order->code;
     }
 
-    function remove($code)
-    {
-        /** @var Order */
-        $order = Order::findByCode($code);
-
-        if ($order == null) throw new AppException("Order not found");
-
-        $order->removed_at = date('Y-m-d H:i:s');
-
-        return $order->edit();
-    }
-
+    /** @return void */
     function delete($code)
     {
         /** @var Order */
-        $order = Order::findByCode($code);
+        $order = Order::find($code);
 
-        if ($order == null) throw new AppException("Order not found");
+        if ($order == null || $order->removed_at != null) throw new AppException("Order not found");
 
-        return $order->delete();
+        if (!$order->delete()) throw new AppException("Could not deleted this order, please try again later");
+
+        foreach ($order->details() as $detail) {
+            $detail->delete();
+        }
     }
 
     function states()
     {
-        return OrderState::all()->fetch();
+        return OrderState::all()->orderBy("id", "ASC")->fetch();
     }
 
     function changeState($code)
@@ -182,10 +151,44 @@ class OrderService
 
         if ($order->removed_at == null) {
             $order->removed_at = date('Y-m-d H:i:s');
+
+            if (!$order->edit()) throw new AppException("Could not change state of order, please try again later");
+
+            foreach ($order->details() as $detail) {
+                $detail->removed_at = date('Y-m-d H:i:s');
+                $detail->edit();
+            }
         } else {
             $order->removed_at = null;
+
+            if (!$order->edit()) throw new AppException("Could not change state of order, please try again later");
+
+            foreach ($order->details() as $detail) {
+                $detail->removed_at = null;
+                $detail->edit();
+            }
+        }
+    }
+
+    function serve($code)
+    {
+        /** @var Order */
+        $order = Order::find($code);
+
+        if ($order == null || $order->removed_at != null) throw new AppException("Order not found");
+
+        foreach ($order->details() as $detail) {
+            if ($detail->state != OrderState::DONE) throw new AppException("Order detail must be in done state to serve this order");
         }
 
-        return $order->edit();
+        $order->state = OrderState::SERVED;
+        $order->updated_at = date('Y-m-d H:i:s');
+
+        if (!$order->edit()) throw new AppException("Order could not be processed, please try again later");
+
+        foreach ($order->details() as $detail) {
+            $detail->state = OrderState::SERVED;
+            $detail->edit();
+        }
     }
 }

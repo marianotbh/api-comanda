@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Core\Exceptions\AppException;
+use App\Core\Utils\ImageHelper;
 use App\Models\Role;
+use Slim\Http\UploadedFile;
 
 use function App\Core\Utils\kebabize;
 
@@ -22,7 +24,7 @@ class UserService
         ];
     }
 
-    function create($model)
+    function create($model, UploadedFile $avatar = null)
     {
         if (User::findByName($model->name) != null) throw new AppException("Username already taken");
         if ($model->password != $model->passwordRepeat) throw new AppException("Passwords don't match");
@@ -40,6 +42,10 @@ class UserService
 
         if (!$user->create()) throw new AppException("User could not be created");
 
+        if ($avatar != null && ImageHelper::validate($avatar)) {
+            ImageHelper::saveTo("Avatars", $avatar, "$user->name.png");
+        }
+
         return User::findByName($user->name)->id;
     }
 
@@ -50,10 +56,10 @@ class UserService
     }
 
     /** @return bool */
-    function update($id, $model)
+    function update($id, $model, UploadedFile $avatar = null)
     {
         /** @var User */
-        $user = User::findById($id);
+        $user = User::find($id);
 
         if ($user == null) throw new AppException("User not found");
 
@@ -62,6 +68,10 @@ class UserService
         $user->last_name = $model->lastName;
         $user->role = $model->role ?? $user->role;
         $user->updated_at = date('Y-m-d H:i:s');
+
+        if ($avatar != null && ImageHelper::validate($avatar)) {
+            ImageHelper::saveTo("Avatars", $avatar, "$user->name.png", true);
+        }
 
         return $user->edit();
     }

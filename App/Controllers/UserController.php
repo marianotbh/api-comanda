@@ -37,6 +37,9 @@ class UserController
 
     function create(Request $req, Response $res, $args)
     {
+        $body = $req->getParsedBody();
+        $files = $req->getUploadedFiles();
+
         $model = Validator::check([
             "name" => ["required", "min" => 5],
             "password" => ["required", "min" => 5],
@@ -45,9 +48,9 @@ class UserController
             "lastName" => ["required", "min" => 2],
             "email" => ["required", "min" => 2, "email"],
             "role" => "required"
-        ],  $req->getParsedBody());
+        ], $body);
 
-        $id = $this->userService->create($model);
+        $id = $this->userService->create($model, isset($files["avatar"]) ? $files["avatar"] : null);
 
         return $res->withJson(["id" => $id], StatusCode::HTTP_CREATED);
     }
@@ -63,9 +66,11 @@ class UserController
 
     function update(Request $req, Response $res, $args)
     {
-        $requester = $req->getAttribute("payload");
+        $body = $req->getParsedBody();
+        $files = $req->getUploadedFiles();
 
         $id = (int) $args["id"];
+        $requester = $req->getAttribute("payload");
 
         if ($requester->id != $id && $requester->role != Role::ADMIN && $requester->role != Role::MANAGER)
             throw new AppException("You cannot edit other users' personal information");
@@ -74,12 +79,12 @@ class UserController
             "firstName" => ["required", "min" => 2],
             "lastName" => ["required", "min" => 2],
             "email" => ["required", "email"]
-        ],  $req->getParsedBody());
+        ],  $body);
 
         if (isset($model->role) && ($requester->role != Role::ADMIN && $requester->role != Role::MANAGER))
             throw new AppException("Insufficient permissions to edit the users' role");
 
-        $this->userService->update($id, $model);
+        $this->userService->update($id, $model, isset($files["avatar"]) ? $files["avatar"] : null);
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "User edited");
     }

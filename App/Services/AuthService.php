@@ -16,22 +16,25 @@ class AuthService
 {
     function login($username, $password, $remember = false)
     {
+        /** @var User */
         $user = User::findByName($username);
 
-        if ($user == null) throw new AppException("User not found");
+        if ($user == null || $user->removed_at != null) throw new AppException("User not found");
         if (!password_verify($password, $user->password)) throw new AppException("Password is incorrect");
 
         $user->last_login_at = date('Y-m-d H:i:s');
         $user->edit();
 
-        $payload = jsonize($user);
-
-        return JWTHelper::encode($payload, $remember);
+        return JWTHelper::encode([
+            "id" => $user->id,
+            "username" => $user->name,
+            "role" => $user->role,
+        ], $remember);
     }
 
     function roles()
     {
-        return Role::all()->fetch();
+        return Role::all()->orderBy("id", "ASC")->fetch();
     }
 
     function changePassword($userId, $oldPassword, $newPassword, $newPasswordRepeat)
@@ -41,7 +44,7 @@ class AuthService
         /** @var User */
         $user = User::find($userId);
 
-        if ($user == null) throw new AppException("User not found");
+        if ($user == null || $user->removed_at != null) throw new AppException("User not found");
         if (!password_verify($oldPassword, $user->password)) throw new AppException("Old password is incorrect");
 
         $user->password = password_hash($newPassword, PASSWORD_DEFAULT);

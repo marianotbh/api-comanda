@@ -19,6 +19,12 @@ class Order extends Model implements JsonSerializable
     public $updated_at;
     public $removed_at;
 
+    /** @return OrderDetail[] */
+    function details()
+    {
+        return OrderDetail::where("order", "=", $this->code)->fetch();
+    }
+
     function jsonSerialize()
     {
         $serialize = [
@@ -32,6 +38,9 @@ class Order extends Model implements JsonSerializable
         ];
 
         if (is_array($this->detail) && count($this->detail) > 0) {
+            $serialize["estimatedAt"] = array_reduce($this->detail, function ($carry, OrderDetail $detail) {
+                return $detail->estimated_at != null && strtotime($detail->estimated_at) > ($carry != null ? strtotime($carry) : time()) ? $detail->estimated_at : $carry;
+            }, null);
             $serialize["detail"] = $this->detail;
         }
 
