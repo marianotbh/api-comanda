@@ -3,6 +3,7 @@
 namespace App\Core\Data;
 
 use App\Core\Exceptions\AppException;
+use PDO;
 
 use function App\Core\Utils\startsWith;
 
@@ -198,11 +199,13 @@ class QueryBuilder
 
     function sum($col)
     {
+        $this->setFetchMode(PDO::FETCH_COLUMN, null);
         return $this->select("SUM(" . $col . ")");
     }
 
     function count($col = "*")
     {
+        $this->setFetchMode(PDO::FETCH_COLUMN, null);
         return $this->select("COUNT(" . $col . ")");
     }
 
@@ -217,19 +220,18 @@ class QueryBuilder
     function fetch()
     {
         $queryString = $this->buildQuery();
+        // echo $queryString;
         $query = $this->data()->prepare($queryString);
         $query->execute($this->values);
-        $this->reset();
         return $query->fetchAll($this->fetchMode, $this->fetchParam);
     }
 
     function run()
     {
         $queryString = $this->buildQuery();
+        // echo $queryString;
         $query = $this->data()->prepare($queryString);
         $query->execute($this->values);
-        $this->reset();
-
         return $query->rowCount() > 0 ? true : false;
     }
 
@@ -268,14 +270,14 @@ class QueryBuilder
         return $queryString;
     }
 
-    private function reset()
-    {
-        $this->sentence = "";
-        $this->conditions = array();
-        $this->values = array();
-        $this->orderCol = "";
-        $this->orderDir = "ASC";
-        $this->limit = -1;
-        $this->offset = 0;
-    }
+    // private function reset()
+    // {
+    //     $this->sentence = "";
+    //     $this->conditions = array();
+    //     $this->values = array();
+    //     $this->orderCol = "";
+    //     $this->orderDir = "ASC";
+    //     $this->limit = -1;
+    //     $this->offset = 0;
+    // }
 }

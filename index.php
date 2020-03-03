@@ -11,6 +11,7 @@ use Slim\Http\Response;
 
 /* Controllers */
 use App\Controllers\AuthController;
+use App\Controllers\LogController;
 use App\Controllers\MenuController;
 use App\Controllers\OrderController;
 use App\Controllers\OrderDetailController;
@@ -24,6 +25,7 @@ use App\Middleware\ErrorHandlerMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\PayloadMiddleware;
 use App\Middleware\RoleMiddleware;
+use App\Middleware\LogActionMiddleware;
 
 use App\Models\Role;
 
@@ -57,7 +59,8 @@ $app->group('/users', function () use ($app) {
     $app->get('/{name}[/]', UserController::class . ":read");
     $app->post('[/]', UserController::class . ":create")
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
-    $app->put('/{id}[/]', UserController::class . ":update");
+    $app->put('/{id}[/]', UserController::class . ":update")
+        ->add(new LogActionMiddleware());
     $app->delete('/{id}[/]', UserController::class . ":delete")
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
     $app->patch('/{id}/state[/]', UserController::class . ":changeState")
@@ -69,14 +72,19 @@ $app->group('/orders', function () use ($app) {
     $app->get('[/]', OrderController::class . ":list");
     $app->get('/{code}[/]', OrderController::class . ":read");
     $app->post('[/]', OrderController::class . ":create")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
     $app->put('/{code}[/]', OrderController::class . ":update")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
     $app->delete('/{code}[/]', OrderController::class . ":delete")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
     $app->patch('/{code}[/]', OrderController::class . ":serve")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
     $app->patch('/{code}/state[/]', OrderController::class . ":changeState")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
 
     $app->group('/{order}/details', function () use ($app) {
@@ -84,10 +92,13 @@ $app->group('/orders', function () use ($app) {
         $app->get('[/]', OrderDetailController::class . ":list");
         $app->get('/{id}[/]', OrderDetailController::class . ":read");
         $app->post('[/]', OrderDetailController::class . ":create")
+            ->add(new LogActionMiddleware())
             ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
         $app->put('/{id}[/]', OrderDetailController::class . ":update")
+            ->add(new LogActionMiddleware())
             ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
         $app->delete('/{id}[/]', OrderDetailController::class . ":delete")
+            ->add(new LogActionMiddleware())
             ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
         $app->patch('/{id}/take[/]', OrderDetailController::class . ":take");
         $app->patch('/{id}/complete[/]', OrderDetailController::class . ":complete");
@@ -114,12 +125,16 @@ $app->group('/menu', function () use ($app) {
     $app->get('[/]', MenuController::class . ":list");
     $app->get('/{id}[/]', MenuController::class . ":read");
     $app->post('[/]', MenuController::class . ":create")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::KITCHEN])));
     $app->put('/{id}[/]', MenuController::class . ":update")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::KITCHEN])));
     $app->delete('/{id}[/]', MenuController::class . ":delete")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::KITCHEN])));
     $app->patch('/{id}/state[/]', MenuController::class . ":changeState")
+        ->add(new LogActionMiddleware())
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::KITCHEN])));
 })->add(new AuthMiddleware());
 
@@ -130,6 +145,10 @@ $app->group('/reviews', function () use ($app) {
     $app->post('/{order}[/]', ReviewController::class . ":create");
     $app->put('/{id}[/]', ReviewController::class . ":update");
     $app->delete('/{id}[/]', ReviewController::class . ":delete");
+});
+
+$app->group('/logs', function () use ($app) {
+    $app->get('[/]', LogController::class . ":list");
 });
 
 $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function (Request $req, Response $res) {

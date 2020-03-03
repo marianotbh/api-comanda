@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'App\\Controllers\\AuthController' => $baseDir . '/App/Controllers/AuthController.php',
+    'App\\Controllers\\LogController' => $baseDir . '/App/Controllers/LogController.php',
     'App\\Controllers\\MenuController' => $baseDir . '/App/Controllers/MenuController.php',
     'App\\Controllers\\OrderController' => $baseDir . '/App/Controllers/OrderController.php',
     'App\\Controllers\\OrderDetailController' => $baseDir . '/App/Controllers/OrderDetailController.php',
@@ -26,6 +27,7 @@ return array(
     'App\\Middleware\\AuthMiddleware' => $baseDir . '/App/Middleware/AuthMiddleware.php',
     'App\\Middleware\\CorsMiddleware' => $baseDir . '/App/Middleware/CorsMiddleware.php',
     'App\\Middleware\\ErrorHandlerMiddleware' => $baseDir . '/App/Middleware/ErrorHandlerMiddleware.php',
+    'App\\Middleware\\LogActionMiddleware' => $baseDir . '/App/Middleware/LogActionMiddleware.php',
     'App\\Middleware\\PayloadMiddleware' => $baseDir . '/App/Middleware/PayloadMiddleware.php',
     'App\\Middleware\\RoleMiddleware' => $baseDir . '/App/Middleware/RoleMiddleware.php',
     'App\\Models\\Log' => $baseDir . '/App/Models/Log.php',
@@ -39,6 +41,7 @@ return array(
     'App\\Models\\TableState' => $baseDir . '/App/Models/TableState.php',
     'App\\Models\\User' => $baseDir . '/App/Models/User.php',
     'App\\Services\\AuthService' => $baseDir . '/App/Services/AuthService.php',
+    'App\\Services\\LogService' => $baseDir . '/App/Services/LogService.php',
     'App\\Services\\MenuService' => $baseDir . '/App/Services/MenuService.php',
     'App\\Services\\OrderDetailService' => $baseDir . '/App/Services/OrderDetailService.php',
     'App\\Services\\OrderService' => $baseDir . '/App/Services/OrderService.php',

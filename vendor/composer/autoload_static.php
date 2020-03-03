@@ -151,6 +151,7 @@ class ComposerStaticInit04d45e462fe497a586cdfe35006c70bd
 
     public static $classMap = array (
         'App\\Controllers\\AuthController' => __DIR__ . '/../..' . '/App/Controllers/AuthController.php',
+        'App\\Controllers\\LogController' => __DIR__ . '/../..' . '/App/Controllers/LogController.php',
         'App\\Controllers\\MenuController' => __DIR__ . '/../..' . '/App/Controllers/MenuController.php',
         'App\\Controllers\\OrderController' => __DIR__ . '/../..' . '/App/Controllers/OrderController.php',
         'App\\Controllers\\OrderDetailController' => __DIR__ . '/../..' . '/App/Controllers/OrderDetailController.php',
@@ -170,6 +171,7 @@ class ComposerStaticInit04d45e462fe497a586cdfe35006c70bd
         'App\\Middleware\\AuthMiddleware' => __DIR__ . '/../..' . '/App/Middleware/AuthMiddleware.php',
         'App\\Middleware\\CorsMiddleware' => __DIR__ . '/../..' . '/App/Middleware/CorsMiddleware.php',
         'App\\Middleware\\ErrorHandlerMiddleware' => __DIR__ . '/../..' . '/App/Middleware/ErrorHandlerMiddleware.php',
+        'App\\Middleware\\LogActionMiddleware' => __DIR__ . '/../..' . '/App/Middleware/LogActionMiddleware.php',
         'App\\Middleware\\PayloadMiddleware' => __DIR__ . '/../..' . '/App/Middleware/PayloadMiddleware.php',
         'App\\Middleware\\RoleMiddleware' => __DIR__ . '/../..' . '/App/Middleware/RoleMiddleware.php',
         'App\\Models\\Log' => __DIR__ . '/../..' . '/App/Models/Log.php',
@@ -183,6 +185,7 @@ class ComposerStaticInit04d45e462fe497a586cdfe35006c70bd
         'App\\Models\\TableState' => __DIR__ . '/../..' . '/App/Models/TableState.php',
         'App\\Models\\User' => __DIR__ . '/../..' . '/App/Models/User.php',
         'App\\Services\\AuthService' => __DIR__ . '/../..' . '/App/Services/AuthService.php',
+        'App\\Services\\LogService' => __DIR__ . '/../..' . '/App/Services/LogService.php',
         'App\\Services\\MenuService' => __DIR__ . '/../..' . '/App/Services/MenuService.php',
         'App\\Services\\OrderDetailService' => __DIR__ . '/../..' . '/App/Services/OrderDetailService.php',
         'App\\Services\\OrderService' => __DIR__ . '/../..' . '/App/Services/OrderService.php',
