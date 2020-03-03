@@ -151,7 +151,7 @@ class OrderDetailService
         if (!$detail->edit()) throw new AppException("Could not update the order, please try again");
     }
 
-    function complete($code, $id)
+    function complete($code, $id, $user)
     {
         /** @var OrderDetail */
         $detail = OrderDetail::find([
@@ -160,6 +160,8 @@ class OrderDetailService
         ]);
 
         if ($detail == null || $detail->removed_at != null) throw new AppException("Order detail not found");
+        if ($detail->state != OrderState::PREPARING) throw new AppException("Cannot mark as done an order that has not been prepared");
+        if ($detail->user != $user) throw new AppException("You cannot complete another users' order");
 
         $detail->state = OrderState::DONE;
         $detail->updated_at = date('Y-m-d H:i:s');

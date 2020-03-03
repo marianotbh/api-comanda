@@ -110,8 +110,9 @@ class OrderDetailController
     {
         $order = $args["order"];
         $id = (int) $args["id"];
+        $user = $req->getAttribute("payload")->id;
 
-        $this->orderDetailService->complete($order, $id);
+        $this->orderDetailService->complete($order, $id, $user);
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Order completed");
     }

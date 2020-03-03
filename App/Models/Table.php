@@ -18,7 +18,7 @@ class Table extends Model implements JsonSerializable
 
     function jsonSerialize()
     {
-        return [
+        $serialized = [
             "code" => $this->code,
             "capacity" => $this->capacity,
             "state" => $this->state,
@@ -26,5 +26,11 @@ class Table extends Model implements JsonSerializable
             "updatedAt" => $this->updated_at,
             "removedAt" => $this->removed_at
         ];
+
+        if ($this->state != TableState::AVAILABLE) {
+            $serialized["currentOrder"] = Order::find(["table" => $this->code, "removed_at" => null]);
+        }
+
+        return $serialized;
     }
 }

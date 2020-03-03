@@ -21,7 +21,7 @@ class ReviewController
     {
         $page = $req->getQueryParam("page") ?: 1;
         $length = $req->getQueryParam("length") ?: 100;
-        $field = $req->getQueryParam("field") ?: "code";
+        $field = $req->getQueryParam("field") ?: "id";
         $order = $req->getQueryParam("order") ?: "ASC";
 
         [

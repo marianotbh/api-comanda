@@ -74,6 +74,8 @@ $app->group('/orders', function () use ($app) {
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
     $app->delete('/{code}[/]', OrderController::class . ":delete")
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
+    $app->patch('/{code}[/]', OrderController::class . ":serve")
+        ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
     $app->patch('/{code}/state[/]', OrderController::class . ":changeState")
         ->add(new RoleMiddleware(fn ($role) => in_array($role, [Role::MANAGER, Role::FLOOR])));
 
@@ -103,6 +105,8 @@ $app->group('/tables', function () use ($app) {
     $app->delete('/{code}[/]', TableController::class . ":delete")
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
     $app->patch('/{code}/state[/]', TableController::class . ":changeState")
+        ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
+    $app->patch('/{code}[/]', TableController::class . ":close")
         ->add(new RoleMiddleware(fn ($role) => $role == Role::MANAGER));
 })->add(new AuthMiddleware());
 

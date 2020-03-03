@@ -92,4 +92,13 @@ class TableController
 
         return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Table state updated");
     }
+
+    function close(Request $req, Response $res, $args)
+    {
+        $code = $args["code"];
+
+        $this->tableService->close($code);
+
+        return $res->withStatus(StatusCode::HTTP_NO_CONTENT, "Table is now available");
+    }
 }

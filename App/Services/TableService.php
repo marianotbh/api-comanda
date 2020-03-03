@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Table;
 use App\Models\TableState;
 use App\Core\Exceptions\AppException;
+use App\Models\Order;
+use App\Models\OrderState;
 use Slim\Http\UploadedFile;
 
 class TableService
@@ -94,5 +96,25 @@ class TableService
         }
 
         return $table->edit();
+    }
+
+    function close($code)
+    {
+        /** @var Table */
+        $table = Table::find($code);
+
+        if ($table == null || $table->removed_at != null) throw new AppException("Table not found");
+
+        /** @var Order */
+        $order = Order::find(["table" => $table->code, "removed_at" => null]);
+
+        if ($order == null || $order->removed_at != null) throw new AppException("There is not an order active for this table");
+        if ($order->state != OrderState::SERVED) throw new AppException("Cannot close a table with a pending order");
+
+        $order->removed_at = date('Y-m-d H:i:s');
+        $order->edit();
+
+        $table->state = TableState::AVAILABLE;
+        $table->edit();
     }
 }

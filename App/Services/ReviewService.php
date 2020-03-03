@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Core\Data\QueryBuilder;
 use App\Models\Review;
 use App\Core\Exceptions\AppException;
+use App\Models\Order;
+use App\Models\OrderState;
 
 use function App\Core\Utils\kebabize;
 
@@ -19,7 +21,10 @@ class ReviewService
             ->take($length)
             ->fetch();
 
-        return $reviews;
+        return [
+            "data" => $reviews,
+            "count" => Review::count()
+        ];
     }
 
     function averages()
@@ -44,10 +49,19 @@ class ReviewService
         return $review;
     }
 
-    function create($model)
+    function create($code, $model)
     {
+        /** @var Order */
+        $order = Order::find($code);
+
+        if ($order == null || $order->removed_at != null) throw new AppException("Order not found");
+        if ($order->state != OrderState::SERVED) throw new AppException("Cannot review an order that has not been served");
+        if (Review::find(["order" => $code])) throw new AppException("This order has already been reviewed");
+
+
         $review = new Review();
 
+        $review->order = $order->code;
         $review->name = $model->name;
         $review->description = $model->description;
         $review->email = $model->email;
@@ -58,7 +72,7 @@ class ReviewService
 
         if (!$review->create()) throw new AppException("Review could not be processed");
 
-        return $review;
+        return Review::find(["order" => $order->code])->id;
     }
 
     function update($id, $model)
